@@ -1,0 +1,20 @@
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({headless:true, executablePath:'/usr/bin/chromium', args:['--no-sandbox']});
+  const page = await browser.newPage();
+  await page.goto('http://127.0.0.1:4173');
+  await page.locator('button[data-a]').first().click();
+  await page.getByRole('button',{name:'执行'}).click();
+  await page.getByRole('button',{name:'开始计划'}).click();
+  await page.getByText('完成一组').click();
+  await page.getByRole('button',{name:'暂停'}).click();
+  const shown = await page.locator('.timer').textContent();
+  await page.getByRole('button',{name:'动作库'}).click();
+  await page.getByRole('button',{name:'执行'}).click();
+  if (await page.locator('.timer').textContent() !== shown) throw Error('paused timer changed after tab switch');
+  await page.reload();
+  await page.getByRole('button',{name:'执行'}).click();
+  if (await page.locator('.timer').textContent() !== shown) throw Error('paused timer changed after refresh');
+  await browser.close();
+  console.log('pause timer regression passed');
+})().catch(e=>{console.error(e);process.exit(1)});
