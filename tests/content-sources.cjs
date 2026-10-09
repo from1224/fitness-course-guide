@@ -10,7 +10,7 @@ if (ref.entries.length !== 196 || count.read !== 116 || count.partial !== 1 || c
   await page.goto('http://127.0.0.1:4173'); await page.waitForTimeout(500);
   if (await page.locator('[data-d]').count() !== 64) throw Error('course cards');
   await page.getByRole('button',{name:'动作库'}).click();
-  if (await page.locator('[data-ref]').count() !== 116) throw Error('read reference details');
+  if (await page.locator('[data-ref]').count() !== 117) throw Error('read and partial reference details');
   await page.locator('[data-ref]').first().click();
   if (!(await page.locator('.detail').textContent()).trim()) throw Error('reference detail');
   await page.goto('http://127.0.0.1:4173'); await page.waitForTimeout(500);

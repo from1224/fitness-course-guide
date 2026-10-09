@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch({headless:true, executablePath:'/usr/bin/chromium', args:['--no-sandbox']});
   const page = await browser.newPage();
-  await page.goto('http://127.0.0.1:4173');
+  await page.goto('http://127.0.0.1:4173#training');
   await page.locator('button[data-a]').first().click();
   await page.getByRole('button',{name:'执行'}).click();
   await page.getByRole('button',{name:'开始计划'}).click();
