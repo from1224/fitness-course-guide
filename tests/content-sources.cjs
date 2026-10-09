@@ -13,6 +13,13 @@ if (ref.entries.length !== 196 || count.read !== 116 || count.partial !== 1 || c
   if (await page.locator('[data-ref]').count() !== 116) throw Error('read reference details');
   await page.locator('[data-ref]').first().click();
   if (!(await page.locator('.detail').textContent()).trim()) throw Error('reference detail');
+  await page.goto('http://127.0.0.1:4173'); await page.waitForTimeout(500);
+  await page.getByRole('button',{name:'动作库'}).click();
+  await page.locator('[data-ref="barbell-bench-press"]').click();
+  if (await page.locator('.detail h3').filter({hasText:'动作步骤'}).count() !== 1) throw Error('steps section');
+  if (await page.locator('.detail p').filter({hasText:'找躺位与握距'}).count() !== 1) throw Error('four steps missing');
+  if (await page.locator('.detail details').count() < 4) throw Error('supplements missing');
+  if (await page.locator('.detail a').count() < 4) throw Error('source links missing');
   if (errors.length) throw Error(errors.join('\n'));
   console.log('content sources passed'); await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
