@@ -5,7 +5,7 @@ const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV
 const video=(bv,t=0)=>`bilibili://video/${videoIds[bv]||bv}?page=0&start_progress=${Math.max(0,Math.round(+t*1000))}`;
 const safe=u=>/^(https:|bilibili:|snssdk1128:|assets\/)/.test(u||'')?u:'#';
 const courses=[['chest-back','胸背两分化','推与拉交替，按当天器械替换。',[['barbell-bench-press','水平推',8,12,150],['narrow-seated-row','水平拉',8,12,120],['incline-dumbbell-chest-press','上斜推',8,12,120],['angled-handle-lat-pulldown','垂直拉',8,12,120]]],['glute-leg','臀腿两分化','膝主导、髋铰链、髋伸、屈膝四个槽位。',[['squat-pattern','蹲',8,12,150],['romanian-deadlift','髋铰链',8,12,150],['standing-cable-hip-extension','后踢腿髋伸',10,15,90],['prone-leg-curl','腿弯举屈膝',10,15,90]]]].map(([id,name,intro,steps])=>({id,name,intro,steps:steps.map(([ref,slot,min,max,rest])=>({ref,slot,min,max,rest}))}));
-let refs=[],cards=[],details=new Map(),full=new Map(),overlay=new Map(),labels={},ui={q:'',filter:'全部'};
+let refs=[],cards=[],details=new Map(),full=new Map(),overlay=new Map(),labels={},tonight=null,ui={q:'',filter:'全部'};
 const stateKey='chenglan-route-state-v1',trainKey='chenglan-training-v3';
 function readStored(key){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&typeof x==='object'&&!Array.isArray(x)?x:null}catch{return null}}
 function normalizeTraining(value){
@@ -47,7 +47,7 @@ function restorePlace(h=location.hash||'#courses'){
 }
 function href(route){return `#${route}`}
 function shell(body,active='courses'){
-  return `<div class="shell"><aside class="side"><div class="brand">澄蓝训练<span>把课程带进每一次训练</span></div><nav class="nav"><a class="${active==='courses'?'on':''}" href="#courses">训练课程</a><a class="${active==='library'?'on':''}" href="#library">查动作</a><a href="./training-tools.html">训练工具</a></nav></aside><section>${body}</section></div>`;
+  return `<div class="shell"><aside class="side"><div class="brand">澄蓝训练<span>把课程带进每一次训练</span></div><nav class="nav"><a class="${active==='courses'?'on':''}" href="#courses">训练课程</a><a class="${active==='tonight'?'on':''}" href="#tonight">今晚清单</a><a class="${active==='library'?'on':''}" href="#library">查动作</a><a href="./training-tools.html">训练工具</a></nav></aside><section>${body}</section></div>`;
 }
 function course(id){return courses.find(x=>x.id===id)}function step(c,i){return course(c)?.steps[+i]}
 function ref(id){return refs.find(x=>x.id===id)}
@@ -61,7 +61,7 @@ function preferredSource(x){
 function atoms(s){let x=[ref(s.ref)],a={"barbell-bench-press":"seated-machine-chest-press","narrow-seated-row":"supported-one-arm-cable-row","incline-dumbbell-chest-press":"incline-machine-press","angled-handle-lat-pulldown":"pull-up"}[s.ref];if(a)x.push(ref(a));let courseAtoms={"squat-pattern":['BV17aovBqEdg:goblet_squat','BV17aovBqEdg:goblet_squat_box_touch'],"romanian-deadlift":['BV17aovBqEdg:barbell_romanian_deadlift','BV1qF6wBaEWu__barbell_romanian_deadlift']}[s.ref]||[];courseAtoms.forEach(id=>{let c=cards.find(v=>v.id===id);if(c)x.push({id:c.id,name:c.n,card:c})});return x.filter(Boolean)}
 function session(c){return train.sessions[c]||(train.sessions[c]={done:{},restSeconds:{},rest:null})}
 function choice(c,i){const s=step(c,i);if(!s)return null;const a=atoms(s);return a.find(x=>x.id===train.choices[`${c}/${i}`])||a[0]}
-function courseHome(){return shell(`<header class="hero"><div class="accent">训练主入口</div><h1>今天练什么，按步骤完成。</h1><p>从一节课程开始。动作教学、示意图和原片链接只在需要它们的地方出现。</p></header><div class="grid">${courses.map(c=>`<article class="card"><h2>${esc(c.name)}</h2><p>${esc(c.intro)}</p><p class="muted">4 个动作槽位 · 可替换 · 进度与休息计时会保存</p><div class="actions"><a class="primary" href="${href(`course/${c.id}/0`)}">开始训练</a></div></article>`).join('')}</div><section class="tools"><h2>需要确认动作？</h2><p class="muted">查动作是辅助工具，不会把你从训练流程带走。</p><a class="secondary" href="#library">打开动作资料</a></section>`)}
+function courseHome(){return shell(`<header class="hero"><div class="accent">训练主入口</div><h1>今天练什么，按步骤完成。</h1><p>从一节课程开始。动作教学、示意图和原片链接只在需要它们的地方出现。</p></header><div class="grid">${courses.map(c=>`<article class="card"><h2>${esc(c.name)}</h2><p>${esc(c.intro)}</p><p class="muted">4 个动作槽位 · 可替换 · 进度与休息计时会保存</p><div class="actions"><a class="primary" href="${href(`course/${c.id}/0`)}">开始训练</a></div></article>`).join('')}</div><section class="tools"><h2>今晚想练胸和腿后侧？</h2><p class="muted">已整理为可跳过、可换动作的来源清单。</p><a class="secondary" href="#tonight">打开今晚清单</a></section>`)}
 function renderCourse(c,i){
   const s=step(c,i),a=s&&choice(c,i);if(!s||!a)return missing('课程步骤不存在','courses');
   const state=session(c),done=Math.min(2,Math.max(0,+state.done[i]||0)),rest=state.rest?.i===+i?state.rest:null,remain=rest?(rest.paused?rest.left:Math.max(0,rest.deadline-Date.now())):0,seconds=state.restSeconds[i]||s.rest;
@@ -83,13 +83,22 @@ function courseLibraryDetail(id){
   const c=cards.find(x=>x.id===id);if(!c)return missing('找不到课程动作','content');
   return detailLayout({name:c.n,subtitle:(c.role||'')+' · '+(c.slot||''),source:{url:video(c.bv,c.t),timeText:Math.floor(c.t/60)+':'+String(Math.floor(c.t%60)).padStart(2,'0')},media:c.media,body:courseBody(id)});
 }
+const tonightKey='fitness-tonight-plan-v1';
+function publicVideo(s){if(s.url)return s.url;return `https://www.bilibili.com/video/${s.bv}/?t=${Math.floor(s.t||0)}`}
+function tonightState(){let x=readStored(tonightKey);return x?.steps&&typeof x.steps==='object'?x:{steps:{}}}
+function saveTonight(x){try{localStorage.setItem(tonightKey,JSON.stringify(x))}catch{}}
+function tonightPlan(){
+  if(!tonight)return shell('<p class="loading">正在加载今晚清单…</p>','tonight');const state=tonightState();
+  const row=(s)=>{const own=state.steps[s.actionId]||{},sets=own.sets??s.sets,reps=own.reps??s.reps,skip=!!own.skip;return `<article class="card" ${skip?'style="opacity:.58"':''}><div class="step-head"><div><span class="tag">${esc(s.role)}</span><h2>${esc(s.name)}</h2></div><label class="muted"><input type="checkbox" data-tonight-skip="${esc(s.actionId)}" ${skip?'checked':''}> 跳过</label></div><p class="muted">建议 ${esc(String(sets))} 组 · ${esc(String(reps))}${s.rest?` · 休息 ${s.rest} 秒`:''}；可现场修改。</p><div class="actions"><label>组 <input class="small" data-tonight-field="sets" data-tonight-id="${esc(s.actionId)}" value="${esc(String(sets))}"></label><label>次数 <input class="small" data-tonight-field="reps" data-tonight-id="${esc(s.actionId)}" value="${esc(String(reps))}"></label></div><details><summary>视频与变式来源（${s.sources.length}）</summary>${s.sources.map(v=>`<p><a href="${esc(publicVideo(v))}">${esc(v.topic)} · ${v.bv?Math.floor(v.t/60)+':'+String(Math.floor(v.t%60)).padStart(2,'0'):'打开来源'}</a></p>`).join('')}</details></article>`};
+  return shell(`<header class="hero"><div class="accent">可增减清单</div><h1>${esc(tonight.title)}</h1><p>${esc(tonight.note)}</p><p class="muted">“优先”不是必做；“可加／可替换／可选”可按器械、疲劳和时间跳过。俯身腿弯举视频不适用于坐姿机。</p></header>${tonight.groups.map(g=>`<section class="tools"><h2>${esc(g.title)}</h2><div class="list">${g.steps.map(row).join('')}</div></section>`).join('')}`,'tonight');
+}
 function missing(text,back){return shell(`<article class="detail"><h1>${text}</h1><p class="muted">链接可能已过期，或该条目不在当前资料中。</p><a class="primary" href="#${back}">返回</a></article>`)}
 function render(){
   let h=location.hash||'#courses';
   if(!location.hash)history.replaceState({...history.state},'',h);
   if(h==='#training'||h==='#tools'){location.replace('./training-tools.html');return}
   const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/);
-  app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#courses'?courseHome():missing('页面不存在','courses');
+  app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
   requestAnimationFrame(()=>scrollTo(0,saved?.scrollY||0));
 }
 function close(){
@@ -165,6 +174,8 @@ function setupListeners(){
   });
   app.addEventListener('input',e=>{if(e.target.id!=='search')return;ui.q=e.target.value;savePlace();render();const input=document.querySelector('#search');input?.focus();input?.setSelectionRange(ui.q.length,ui.q.length)});
   app.addEventListener('change',e=>{if(!e.target.matches('[data-rest]'))return;const m=location.hash.match(/^#course\/([^/]+)\/(\d+)$/),value=+e.target.value;if(m&&[90,120,150,180].includes(value)){session(m[1]).restSeconds[m[2]]=value;saveTrain()}});
+  app.addEventListener('change',e=>{const id=e.target.dataset?.tonightSkip;if(!id)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),skip:e.target.checked};saveTonight(state);render()});
+  app.addEventListener('input',e=>{const id=e.target.dataset?.tonightId,field=e.target.dataset?.tonightField;if(!id||!field)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),[field]:e.target.value};saveTonight(state)});
   setInterval(()=>{
     const m=location.hash.match(/^#course\/([^/]+)\/(\d+)$/),r=m&&train.sessions[m[1]]?.rest;if(!r||r.paused||r.finished)return;
     const remaining=Math.max(0,r.deadline-Date.now());
@@ -173,5 +184,5 @@ function setupListeners(){
   },400);
 }
 setupListeners();
-Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json'].map(n=>fetch(`./data/${n}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
+Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json','tonight-chest-hamstrings-20261011.json'].map(n=>fetch(`./data/${n}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r,p])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');tonight=p;render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
 

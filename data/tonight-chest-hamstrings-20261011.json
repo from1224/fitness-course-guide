@@ -1,0 +1,31 @@
+{
+  "id":"tonight-chest-hamstrings","title":"今晚：胸部＋腿后侧","note":"可按现场状态增减；以下为建议范围，不是原课总量或医疗建议。保留 2–3 次余力。",
+  "groups":[
+    {"id":"chest-warmup","title":"胸部热身","steps":[
+      {"actionId":"pec_minor_ball_release_standing","name":"小球胸小肌按压配合肩环绕","role":"可加","sets":2,"reps":"按画面","rest":0,"sources":[{"bv":"BV1CSoKBaEgK","t":4671,"topic":"讲者胸部热身"}]},
+      {"actionId":"pec_major_foam_roll_prone_supported","name":"胸前泡沫轴滚动","role":"可加","sets":2,"reps":"按画面","rest":0,"sources":[{"bv":"BV1CSoKBaEgK","t":4722,"topic":"旧课：身体撑起版本"},{"bv":"BV1fa6CBDEEu","t":90,"topic":"新课：胸前泡沫轴，原课 2 组"}]},
+      {"actionId":"band_pull_apart_small_range_trunk_stable","name":"弹力带小幅前后拉开","role":"可加","sets":2,"reps":"10–12","rest":0,"sources":[{"bv":"BV1CSoKBaEgK","t":4796,"topic":"躯干稳定、小幅版本"}]},
+      {"actionId":"prone_y_raise_floor_thumb_up","name":"俯卧 Y 字上举","role":"可加","sets":2,"reps":"按画面","rest":0,"sources":[{"bv":"BV1CSoKBaEgK","t":4866,"topic":"拇指朝上版本"}]},
+      {"actionId":"wall-foam-scapular-pushup","name":"靠墙泡沫轴肩胛推出上下推","role":"可加","sets":2,"reps":"按画面","rest":0,"sources":[{"bv":"BV1fa6CBDEEu","t":222,"topic":"原课 2–3 组；手位需看画面"}]},
+      {"actionId":"prone-abdominal-stretch","name":"俯卧撑地腹部拉伸","role":"可选收尾/热身","sets":1,"reps":"按画面","rest":0,"sources":[{"bv":"BV1fa6CBDEEu","t":319,"topic":"原课未给剂量"}]}
+    ]},
+    {"id":"hamstring-warmup","title":"腿后侧热身","steps":[
+      {"actionId":"BV17aovBqEdg:warmup_foam_hamstrings","name":"泡沫轴滚压大腿后侧","role":"优先","sets":1,"reps":"小幅按画面","rest":0,"sources":[{"bv":"BV17aovBqEdg","t":325,"topic":"大腿后侧"}]},
+      {"actionId":"BV17aovBqEdg:warmup_dynamic_90_90_hip_extension","name":"动态 90/90 接伸髋","role":"可加","sets":1,"reps":"按画面","rest":0,"sources":[{"bv":"BV17aovBqEdg","t":87,"topic":"动态顶髋"}]},
+      {"actionId":"BV17aovBqEdg:warmup_inchworm_worlds_greatest_stretch_sequence","name":"毛毛虫式接伟大者伸展","role":"优先","sets":1,"reps":"每侧转体 5–10","rest":0,"sources":[{"bv":"BV17aovBqEdg","t":541,"topic":"旧腿课组合"},{"bv":"BV13nPFzCENK","t":37.44,"topic":"伟大者伸展；腿后/内收约 20 秒"}]}
+    ]},
+    {"id":"training","title":"正式训练","steps":[
+      {"actionId":"incline-dumbbell-chest-press","name":"上斜哑铃推胸","role":"优先","sets":3,"reps":"8–12","rest":120,"sources":[{"bv":"BV1CSoKBaEgK","t":1652,"topic":"旧课版本"},{"bv":"BV1fa6CBDEEu","t":720,"topic":"新课独立版本；原课 4×12–15，不与旧口令混用"}]},
+      {"actionId":"prone-leg-curl","name":"俯身腿弯举","role":"优先（仅俯卧机）","sets":3,"reps":"10–15","rest":90,"sources":[{"url":"https://www.bilibili.com/video/av116825358603644/?t=2906","topic":"俯卧腿弯举；不适用于坐姿机"}]},
+      {"actionId":"barbell-bench-press","name":"平板杠铃卧推","role":"可替换","sets":2,"reps":"8–12","rest":120,"sources":[{"bv":"BV1CSoKBaEgK","t":104,"topic":"旧课平板卧推"}]},
+      {"actionId":"seated-machine-chest-press","name":"坐姿器械平推","role":"可替换","sets":2,"reps":"10–15","rest":90,"sources":[{"url":"https://www.bilibili.com/video/av116734493333443/?t=877","topic":"器械平推"}]},
+      {"actionId":"cable-chest-fly","name":"夹胸／龙门架夹胸","role":"可加","sets":2,"reps":"10–15","rest":90,"sources":[{"bv":"BV1fa6CBDEEu","t":1309,"topic":"水平夹胸；原课 4×12–15"},{"bv":"BV1fa6CBDEEu","t":1534,"topic":"龙门架夹下胸；原课 4×15–20"}]},
+      {"actionId":"rotation-lunge-basic","name":"旋转弓步蹲（基础慢回正）","role":"可选","sets":2,"reps":"每侧 6–8","rest":90,"sources":[{"bv":"BV13nPFzCENK","t":660.99,"topic":"持片正式动作；基础慢回正，斜上爆发是进阶"}]},
+      {"actionId":"romanian-deadlift","name":"罗马尼亚硬拉","role":"可选","sets":2,"reps":"8–12","rest":120,"sources":[{"bv":"BV17aovBqEdg","t":2613,"topic":"旧腿课杠铃版本，原课 3 组、次数未明"},{"url":"https://www.bilibili.com/video/av117075758554594/?t=20","topic":"动作库主教学"}]}
+    ]},
+    {"id":"finish","title":"收尾拉伸","steps":[
+      {"actionId":"wall-chest-stretch","name":"靠墙屈肘胸部拉伸","role":"可选","sets":1,"reps":"按画面","rest":0,"sources":[{"url":"https://www.bilibili.com/video/av116672350394011/?t=80","topic":"现有可核实胸部拉伸"}]},
+      {"actionId":"supine-straight-leg-hamstring-stretch","name":"仰卧直腿后侧拉伸","role":"可选","sets":1,"reps":"按画面","rest":0,"sources":[{"url":"https://www.bilibili.com/video/av116672350394011/?t=1050","topic":"腿后侧"}]}
+    ]}
+  ]
+}
