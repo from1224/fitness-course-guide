@@ -7,15 +7,16 @@ if (ref.entries.length !== 196 || count.read !== 116 || count.partial !== 1 || c
   const page = await browser.newPage({viewport:{width:390,height:844}});
   await page.route('**/fitness.j1exanderspace.cn/**', route => route.abort());
   const errors=[]; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('http://127.0.0.1:4173'); await page.waitForTimeout(500);
+  await page.goto('http://127.0.0.1:4173#content'); await page.waitForTimeout(500);
   if (await page.locator('[data-d]').count() !== 64) throw Error('course cards');
   await page.getByRole('button',{name:'动作库'}).click();
   if (await page.locator('[data-ref]').count() !== 117) throw Error('read and partial reference details');
   await page.locator('[data-ref]').first().click();
   if (!(await page.locator('.detail').textContent()).trim()) throw Error('reference detail');
-  await page.goto('http://127.0.0.1:4173'); await page.waitForTimeout(500);
+  await page.goto('http://127.0.0.1:4173#content'); await page.waitForTimeout(500);
   await page.getByRole('button',{name:'动作库'}).click();
   await page.locator('[data-ref="barbell-bench-press"]').click();
+  await page.locator('[data-testid="content-detail"]').waitFor();
   if (await page.locator('.detail h3').filter({hasText:'动作步骤'}).count() !== 1) throw Error('steps section');
   if (await page.locator('.detail p').filter({hasText:'找躺位与握距'}).count() !== 1) throw Error('four steps missing');
   if (await page.locator('.detail details').count() < 4) throw Error('supplements missing');

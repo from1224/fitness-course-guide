@@ -5,7 +5,7 @@ const {chromium}=require('playwright');
     const p=await b.newPage({viewport}); p.setDefaultTimeout(5000); const errors=[]; const requests=[];
     p.on('pageerror',e=>errors.push(e.message)); p.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:4173/'))requests.push(r.url())});
     await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4173/')?r.continue():r.abort());
-    await p.goto('http://127.0.0.1:4173'); await p.getByTestId('content-root').waitFor();
+    await p.goto('http://127.0.0.1:4173#content'); await p.getByTestId('content-root').waitFor();
     if(await p.locator('[data-testid=course-detail]').count()!==64)throw Error('64 course cards');
     await p.getByTestId('course-detail').first().click(); await p.getByTestId('content-detail').waitFor();
     await p.getByTestId('content-back').click(); if(await p.locator('[data-testid=course-detail]').count()!==64)throw Error('course back');
