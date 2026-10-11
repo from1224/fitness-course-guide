@@ -104,6 +104,7 @@ function render(){
 }
 function close(){
   const h=location.hash,m=h.match(/^#course\/([^/]+)\/(\d+)\/exercise\//),parent=m?`#course/${m[1]}/${m[2]}`:h.startsWith('#library/course/')?'#content':'#library';
+  if(history.state?.appNavigation&&history.state.from==='#tonight'){history.back();return}
   if(history.state?.appNavigation&&history.state.from===parent){history.back();return}
   navigate(parent,{replace:true,from:null});
 }
