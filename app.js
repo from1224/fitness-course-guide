@@ -35,8 +35,29 @@ let train=mergeTraining(currentTraining,legacyTraining);
 try{if(currentTraining||legacyTraining)localStorage.setItem(trainKey,JSON.stringify(train))}catch{}
 const saveTrain=()=>{try{localStorage.setItem(trainKey,JSON.stringify(train))}catch{}};
 function routeState(){try{return JSON.parse(sessionStorage.getItem(stateKey)||'{}')}catch{return {}}}
+function detailState(){
+  if(!app?.querySelectorAll)return {};
+  const out={},seen={};
+  for(const node of app.querySelectorAll('details')){
+    const scope=node.closest?.('[data-detail-scope]')?.dataset.detailScope||location.hash||'#courses';
+    const title=(node.querySelector('summary')?.textContent||'补充').trim();
+    const base=`${scope}\u0000${title}`,n=seen[base]||0;seen[base]=n+1;
+    if(node.open)out[`${base}\u0000${n}`]=true;
+  }
+  return out;
+}
+function restoreDetails(open){
+  if(!open||!app?.querySelectorAll)return;
+  const seen={};
+  for(const node of app.querySelectorAll('details')){
+    const scope=node.closest?.('[data-detail-scope]')?.dataset.detailScope||location.hash||'#courses';
+    const title=(node.querySelector('summary')?.textContent||'补充').trim();
+    const base=`${scope}\u0000${title}`,n=seen[base]||0;seen[base]=n+1;
+    node.open=!!open[`${base}\u0000${n}`];
+  }
+}
 function savePlace(){
-  const key=location.hash||'#courses',all=routeState(),place={q:ui.q,filter:ui.filter,scrollY:Math.max(0,scrollY||0)};
+  const key=location.hash||'#courses',all=routeState(),place={q:ui.q,filter:ui.filter,scrollY:Math.max(0,scrollY||0),details:detailState()};
   all[key]=place;try{sessionStorage.setItem(stateKey,JSON.stringify(all))}catch{}
   history.replaceState({...history.state,routeUI:place},'');
 }
@@ -73,7 +94,7 @@ function renderCourse(c,i){
   const s=step(c,i),a=s&&choice(c,i);if(!s||!a)return missing('课程步骤不存在','courses');
   const state=session(c),done=Math.min(2,Math.max(0,+state.done[i]||0)),rest=state.rest?.i===+i?state.rest:null,remain=rest?(rest.paused?rest.left:Math.max(0,rest.deadline-Date.now())):0,seconds=state.restSeconds[i]||s.rest;
   const teach=inlineTeaching(a.id,a.card),sources=a.card?[{bv:a.card.bv,t:a.card.t,topic:'本课程动作片段'}]:[preferredSource(a)].filter(Boolean);
-  return shell(`<a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header><article class="card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">完整动作详情</a></div><details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:'<button class="primary" data-action="restart">开始新一轮</button>'}</div>`);
+  return shell(`<a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header><article class="card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card" data-detail-scope="course:${esc(a.id)}"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">完整动作详情</a></div><details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:'<button class="primary" data-action="restart">开始新一轮</button>'}</div>`);
 }
 function courseDetail(c,i,id){
   const s=step(c,i),x=s&&atoms(s).find(v=>v.id===id);
@@ -98,7 +119,7 @@ function saveTonight(x){try{localStorage.setItem(tonightKey,JSON.stringify(x))}c
 function tonightDetailHref(id){return ref(id)?href(`library/reference/${encodeURIComponent(id)}`):cards.some(x=>x.id===id)?href(`library/course/${encodeURIComponent(id)}`):''}
 function tonightPlan(){
   if(!tonight)return shell('<p class="loading">正在加载今晚清单…</p>','tonight');const state=tonightState();
-  const row=(s)=>{const own=state.steps[s.actionId]||{},sets=own.sets??s.sets,reps=own.reps??s.reps,skip=!!own.skip,detail=tonightDetailHref(s.actionId),card=cards.find(x=>x.id===s.actionId),teach=inlineTeaching(s.actionId,card),long=card?courseBody(card.id):ref(s.actionId)?referenceBody(ref(s.actionId)):'';return `<article class="card" ${skip?'style="opacity:.58"':''}><div class="step-head"><div><span class="tag">${esc(s.role)}</span><h2>${esc(s.name)}</h2></div><label class="muted"><input type="checkbox" data-tonight-skip="${esc(s.actionId)}" ${skip?'checked':''}> 跳过</label></div><p class="muted">建议 ${esc(String(sets))} 组 · ${esc(String(reps))}${s.rest?` · 休息 ${s.rest} 秒`:''}；可现场修改。</p>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">未解析短口诀；请先看下方视频确认姿势。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(s.sources)}${detail?`<a class="secondary" href="${detail}">完整动作详情</a>`:''}<label>组 <input class="small" data-tonight-field="sets" data-tonight-id="${esc(s.actionId)}" value="${esc(String(sets))}"></label><label>次数 <input class="small" data-tonight-field="reps" data-tonight-id="${esc(s.actionId)}" value="${esc(String(reps))}"></label></div>${long?`<details><summary>展开完整教学、补充与来源</summary>${long}</details>`:''}</article>`};
+  const row=(s)=>{const own=state.steps[s.actionId]||{},sets=own.sets??s.sets,reps=own.reps??s.reps,skip=!!own.skip,detail=tonightDetailHref(s.actionId),card=cards.find(x=>x.id===s.actionId),teach=inlineTeaching(s.actionId,card),long=card?courseBody(card.id):ref(s.actionId)?referenceBody(ref(s.actionId)):'';return `<article class="card" data-detail-scope="tonight:${esc(s.actionId)}" ${skip?'style="opacity:.58"':''}><div class="step-head"><div><span class="tag">${esc(s.role)}</span><h2>${esc(s.name)}</h2></div><label class="muted"><input type="checkbox" data-tonight-skip="${esc(s.actionId)}" ${skip?'checked':''}> 跳过</label></div><p class="muted">建议 ${esc(String(sets))} 组 · ${esc(String(reps))}${s.rest?` · 休息 ${s.rest} 秒`:''}；可现场修改。</p>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">未解析短口诀；请先看下方视频确认姿势。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(s.sources)}${detail?`<a class="secondary" href="${detail}">完整动作详情</a>`:''}<label>组 <input class="small" data-tonight-field="sets" data-tonight-id="${esc(s.actionId)}" value="${esc(String(sets))}"></label><label>次数 <input class="small" data-tonight-field="reps" data-tonight-id="${esc(s.actionId)}" value="${esc(String(reps))}"></label></div>${long?`<details><summary>展开完整教学、补充与来源</summary>${long}</details>`:''}</article>`};
   return shell(`<header class="hero"><div class="accent">可增减清单</div><h1>${esc(tonight.title)}</h1><p>${esc(tonight.note)}</p><p class="muted">“优先”不是必做；“可加／可替换／可选”可按器械、疲劳和时间跳过。俯身腿弯举视频不适用于坐姿机。</p></header>${tonight.groups.map(g=>`<section class="tools"><h2>${esc(g.title)}</h2><div class="list">${g.steps.map(row).join('')}</div></section>`).join('')}`,'tonight');
 }
 function missing(text,back){return shell(`<article class="detail"><h1>${text}</h1><p class="muted">链接可能已过期，或该条目不在当前资料中。</p><a class="primary" href="#${back}">返回</a></article>`)}
@@ -108,6 +129,7 @@ function render(){
   if(h==='#training'||h==='#tools'){location.replace('./training-tools.html');return}
   const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/);
   app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
+  restoreDetails(saved?.details);
   requestAnimationFrame(()=>scrollTo(0,saved?.scrollY||0));
 }
 function close(){
@@ -157,6 +179,7 @@ function navigate(target,{replace=false,from}={}){
 function setupListeners(){
   window.addEventListener('hashchange',render);window.addEventListener('popstate',render);window.addEventListener('beforeunload',savePlace);
   app.addEventListener('error',e=>{if(e.target.tagName!=='IMG')return;const p=document.createElement('p');p.className='muted';p.textContent='示意图暂不可用';e.target.replaceWith(p)},true);
+  app.addEventListener('toggle',e=>{if(e.target.matches?.('details'))savePlace()},true);
   app.addEventListener('click',e=>{
     const a=e.target.closest('a[href^="#"]');
     if(!a||!app.contains(a)||e.defaultPrevented||e.button>0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
