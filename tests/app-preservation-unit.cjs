@@ -1,0 +1,51 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const root=process.env.DATA_DIR||path.join(__dirname,'../data');
+const source=fs.readFileSync(process.env.APP_PATH||path.join(__dirname,'../app.js'),'utf8');
+const load=n=>JSON.parse(fs.readFileSync(path.join(root,n),'utf8'));
+const data={reference:load('authorized-reference.json'),content:load('course-content-20261009.json'),full:load('course-full-detail-20261009.json'),overlay:load('coach-cues-20261009.json')};
+const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
+function environment({hash='#courses',local={},session={},state=null}={}){
+  const localMap=new Map(Object.entries(local)),sessionMap=new Map(Object.entries(session)),listeners={},windowListeners={},frames=[],timers=[];
+  const app={innerHTML:'',addEventListener(type,fn){(listeners[type]||=[]).push(fn)},contains(){return true},querySelector(){return null}};
+  let currentHash=hash,index=0,stack=[{hash,state:clone(state)}],confirmValue=true;
+  const storage=m=>({getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)});
+  const ctx={document:{querySelector:s=>s==='#app'?app:null,createElement:()=>({})},localStorage:storage(localMap),sessionStorage:storage(sessionMap),window:{addEventListener(type,fn){(windowListeners[type]||=[]).push(fn)}},scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollTo:(x,y)=>{ctx.scrollY=y},setInterval:fn=>timers.push(fn),fetch:()=>new Promise(()=>{}),confirm:()=>confirmValue,data,console};
+  ctx.location={get hash(){return currentHash},replace(url){if(!url.startsWith('#')){ctx.external=url;return}currentHash=url;stack[index]={hash:url,state:null};for(const fn of windowListeners.hashchange||[])fn()}};
+  ctx.history={get state(){return stack[index].state},replaceState(state,title,url){if(url)currentHash=url;stack[index]={hash:currentHash,state:clone(state)}},pushState(state,title,url){currentHash=url;stack=stack.slice(0,index+1);stack.push({hash:url,state:clone(state)});index++},back(){if(index>0){index--;currentHash=stack[index].hash;for(const fn of windowListeners.popstate||[])fn()}},forward(){if(index<stack.length-1){index++;currentHash=stack[index].hash;for(const fn of windowListeners.popstate||[])fn()}}};
+  vm.createContext(ctx);vm.runInContext(source,ctx);
+  vm.runInContext("refs=data.reference.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');cards=data.content.sourceCards;details=new Map(data.content.details.map(x=>[x.id,x]));full=new Map(data.full.cards.map(x=>[x.id,x]));overlay=new Map(data.overlay.overlays.map(x=>[x.id,x]));labels=data.full.section_labels||{};",ctx);
+  const run=js=>{const result=vm.runInContext(js,ctx);while(frames.length)frames.shift()();return result};
+  const action=name=>{const node={dataset:{action:name}},target={closest:s=>s==='[data-action]'?node:null};for(const fn of listeners.click||[])fn({target,preventDefault(){}});while(frames.length)frames.shift()()};
+  const rest=value=>{for(const fn of listeners.change||[])fn({target:{value,matches:s=>s==='[data-rest]'}})};
+  return {ctx,app,run,action,rest,localMap,sessionMap,timers,setConfirm:v=>{confirmValue=v},stackLength:()=>stack.length};
+}
+const e=environment();
+const summary=e.run("(()=>{let checked=0;for(const c of cards){const html=courseLibraryDetail(c.id),f=full.get(c.id)||{},o=overlay.get(c.id);const assertText=t=>{if(t&&!html.includes(esc(t)))throw Error('Missing course text '+c.id+': '+t)};for(const rows of Object.values(f.sections||{}))for(const row of rows){assertText(row.text||row);for(const span of row.source_spans||[])if(!html.includes(esc(video(c.bv,span.start_seconds))))throw Error('Lost millisecond link '+c.id)}for(const row of [...(f.course_supplement||[]),...(f.editorial_metadata||[])])assertText(row.text||row);if(o){assertText(o.cue);for(const t of [...(o.setup||[]),...(o.execute||[])])assertText(t);assertText(o.targetfeel);for(const t of o.mistakes||[]){assertText(t.observed_problem);assertText(t.adjustment)}}checked++}for(const x of refs){const html=libraryDetail(x.id),assertText=t=>{if(t&&!html.includes(esc(t)))throw Error('Missing reference text '+x.id+': '+t)};for(const t of [...(x.trainingDetails?.paragraphs||[]),...(x.main?.paragraphs||[])])assertText(t);for(const g of x.stepSequences||[])for(const s of g.steps||[]){assertText(s.title);assertText(s.text)}for(const s of x.supplements||[]){assertText(s.title);if(s.content?.text)assertText(s.content.text);else for(const t of s.content?.paragraphs||[])assertText(t);for(const src of s.sources||[])if(safe(src.url)!=='#'&&!html.includes(esc(src.url)))throw Error('Lost supplement source '+x.id)}if(x.media?.src&&!html.includes(esc(x.media.src)))throw Error('Lost image '+x.id);assertText(x.primarySourceAttribution?.title);assertText(x.primarySourceAttribution?.author)}let contextual=0;for(const c of courses)for(let i=0;i<c.steps.length;i++)for(const x of atoms(c.steps[i])){const html=courseDetail(c.id,i,x.id),body=x.card?courseBody(x.id):referenceBody(x);if(!html.includes(body))throw Error('Incomplete course context '+x.id);contextual++}return {cards:checked,references:refs.length,contextual}})()");
+assert.equal(summary.cards,64);assert.equal(summary.references,117);
+assert.equal(e.run("preferredSource(ref('supported-one-arm-cable-row')).url"),'bilibili://video/117142649312746?page=0&start_progress=106000');
+assert.equal(e.run("preferredSource(ref('pull-up')).url"),'bilibili://video/116153380836450?page=0&start_progress=1033000');
+assert.ok(e.run("courseLibraryDetail('BV17aovBqEdg:barbell_romanian_deadlift')").includes('start_progress=2652809'));
+const legacy={choices:{'chest-back/1':'supported-one-arm-cable-row'},sessions:{'chest-back':{done:{1:1},restSeconds:{1:90},rest:{i:1,paused:true,left:45000}}}};
+const migrated=environment({hash:'#course/chest-back/1',local:{'training-course-state-v2':JSON.stringify(legacy)}});
+assert.deepEqual(JSON.parse(migrated.run("JSON.stringify(train)")),legacy);
+assert.equal(JSON.parse(migrated.localMap.get('chenglan-training-v3')).sessions['chest-back'].rest.left,45000);
+assert.equal(migrated.localMap.get('training-course-state-v2'),JSON.stringify(legacy));
+const bad=environment({local:{'chenglan-training-v3':'{broken','training-course-state-v2':JSON.stringify(legacy)}});assert.deepEqual(JSON.parse(bad.run("JSON.stringify(train)")),legacy);
+const current={choices:{'chest-back/1':'narrow-seated-row'},sessions:{'chest-back':{done:{},restSeconds:{},rest:null}}};
+const priority=environment({local:{'chenglan-training-v3':JSON.stringify(current),'training-course-state-v2':JSON.stringify(legacy)}});assert.deepEqual(JSON.parse(priority.run("JSON.stringify(train)")),current);
+migrated.run('render()');assert.ok(migrated.app.innerHTML.includes('90 秒'));assert.ok(migrated.app.innerHTML.includes('45 秒'));
+migrated.rest('180');assert.equal(migrated.run("train.sessions['chest-back'].restSeconds[1]"),180);
+migrated.action('undo');assert.equal(migrated.run("train.sessions['chest-back'].done[1]"),0);
+migrated.action('set');assert.equal(migrated.run("train.sessions['chest-back'].done[1]"),1);migrated.action('pause');
+const paused=migrated.run("train.sessions['chest-back'].rest.left");assert.ok(paused<=180000&&paused>170000);
+const reloaded=environment({hash:'#course/chest-back/1',local:Object.fromEntries(migrated.localMap)});assert.equal(reloaded.run("train.sessions['chest-back'].rest.left"),paused);assert.equal(reloaded.run("train.sessions['chest-back'].rest.paused"),true);
+migrated.run("navigate('#course/chest-back/3')");migrated.setConfirm(false);migrated.action('restart');assert.equal(migrated.run("train.sessions['chest-back'].done[1]"),1);
+migrated.setConfirm(true);migrated.action('restart');assert.equal(migrated.ctx.location.hash,'#course/chest-back/0');assert.deepEqual(JSON.parse(migrated.run("JSON.stringify(train.sessions['chest-back'])")),{done:{},restSeconds:{},rest:null});assert.equal(migrated.run("train.choices['chest-back/1']"),'supported-one-arm-cable-row');
+const nav=environment({hash:'#library'});nav.run("ui={q:'杠铃卧推',filter:'胸'}");nav.ctx.scrollY=480;nav.run("savePlace();render()");
+nav.run("navigate('#library/reference/barbell-bench-press')");const length=nav.stackLength();nav.run('close()');assert.equal(nav.ctx.location.hash,'#library');assert.equal(nav.run('ui.q'),'杠铃卧推');assert.equal(nav.run('ui.filter'),'胸');assert.equal(nav.ctx.scrollY,480);assert.ok(nav.app.innerHTML.includes('value=\"杠铃卧推\"'));assert.equal(nav.stackLength(),length);
+nav.ctx.history.forward();assert.equal(nav.ctx.location.hash,'#library/reference/barbell-bench-press');nav.run('close()');assert.equal(nav.ctx.location.hash,'#library');assert.equal(nav.stackLength(),length);
+const navReload=environment({hash:'#library',session:Object.fromEntries(nav.sessionMap),state:clone(nav.ctx.history.state)});navReload.run('render()');assert.equal(navReload.run('ui.q'),'杠铃卧推');assert.ok(navReload.app.innerHTML.includes('value=\"杠铃卧推\"'));assert.equal(navReload.ctx.scrollY,480);
+for(const [hash,parent] of [['#library/course/BV17aovBqEdg%3Abarbell_romanian_deadlift','#content'],['#library/reference/barbell-bench-press','#library'],['#course/chest-back/0/exercise/barbell-bench-press','#course/chest-back/0']]){const direct=environment({hash});direct.run('render();close()');assert.equal(direct.ctx.location.hash,parent);assert.equal(direct.stackLength(),1)}
+const oldRoute=environment({hash:'#training'});oldRoute.run('render()');assert.equal(oldRoute.ctx.external,'./training-tools.html');
+console.log(JSON.stringify({passed:true,...summary,migration:'legacy and corrupt-current fallback; current wins',training:'rest selection, paused reload, restart cancellation and confirmation',navigation:'close, Back/Forward, reload query/filter/scroll, direct-link parent, old tools alias'},null,2));
+
