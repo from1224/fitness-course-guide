@@ -176,7 +176,7 @@ function setupListeners(){
   });
   app.addEventListener('input',e=>{if(e.target.id!=='search')return;ui.q=e.target.value;savePlace();render();const input=document.querySelector('#search');input?.focus();input?.setSelectionRange(ui.q.length,ui.q.length)});
   app.addEventListener('change',e=>{if(!e.target.matches('[data-rest]'))return;const m=location.hash.match(/^#course\/([^/]+)\/(\d+)$/),value=+e.target.value;if(m&&[90,120,150,180].includes(value)){session(m[1]).restSeconds[m[2]]=value;saveTrain()}});
-  app.addEventListener('change',e=>{const id=e.target.dataset?.tonightSkip;if(!id)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),skip:e.target.checked};saveTonight(state);render()});
+  app.addEventListener('change',e=>{const id=e.target.dataset?.tonightSkip;if(!id)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),skip:e.target.checked};saveTonight(state);savePlace();render()});
   app.addEventListener('input',e=>{const id=e.target.dataset?.tonightId,field=e.target.dataset?.tonightField;if(!id||!field)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),[field]:e.target.value};saveTonight(state)});
   setInterval(()=>{
     const m=location.hash.match(/^#course\/([^/]+)\/(\d+)$/),r=m&&train.sessions[m[1]]?.rest;if(!r||r.paused||r.finished)return;
