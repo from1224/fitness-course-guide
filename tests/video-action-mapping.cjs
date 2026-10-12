@@ -17,11 +17,11 @@ const day2=map.segments.filter(x=>x.videoId==='bv:BV1v5opBhEDc');assert.equal(da
 const valid=addSubtitleClaim(map,{id:'claim:test',segmentId:day2[0].id,actionId:day2[0].actionId,kind:'cue',publicSummary:'保留动作路径。',verification:'subtitle_verified'});assert.equal(valid.verification,'subtitle_verified');
 assert.throws(()=>addSubtitleClaim(map,{...valid,verification:'audio_verified'}),/subtitle_verified/);
 assert.throws(()=>addSubtitleClaim(map,{...valid,segmentId:'segment:unknown'}),/segment/);
-assert.deepEqual(subtitle.videos.map(x=>x.bv),['BV1ofdnBZEi3','BV18Jj66zEpV']);assert.ok(subtitle.videos.every(x=>x.verification==='subtitle_verified'));assert.equal(subtitle.segments.length,17);assert.ok(subtitle.claims.length>=32);
+assert.deepEqual(subtitle.videos.map(x=>x.bv),['BV1ofdnBZEi3','BV18Jj66zEpV']);assert.ok(subtitle.videos.every(x=>x.verification==='subtitle_verified'));assert.equal(subtitle.segments.length,17);assert.ok(subtitle.claims.length>=47);
 for(const segment of subtitle.segments){assert.ok(subtitle.actions.some(x=>x.id===segment.actionId));assert.ok(segment.endSeconds>segment.startSeconds)}
 for(const claim of subtitle.claims){assert.equal(claim.verification,'subtitle_verified');assert.ok(subtitle.segments.some(x=>x.id===claim.segmentId));assert.ok(claim.sourceSpans.every(([start,end])=>end>start));assert.ok(claim.publicSummary.length<120)}
 assert.ok(subtitle.claims.some(x=>x.kind==='superset'&&x.segmentId==='segment:BV18Jj66zEpV:cable-hammer-curl'));
-for(const segment of subtitle.segments.filter(x=>x.videoId==='bv:BV1ofdnBZEi3'))assert.ok(subtitle.claims.some(x=>x.segmentId===segment.id&&x.kind==='cue'),`missing back cue ${segment.id}`);
+for(const segment of subtitle.segments.filter(x=>x.videoId==='bv:BV1ofdnBZEi3')){const claims=subtitle.claims.filter(x=>x.segmentId===segment.id);assert.ok(claims.some(x=>x.kind==='cue'),`missing back cue ${segment.id}`);assert.ok(claims.length>=2,`missing back detail ${segment.id}`)}
 assert.deepEqual(subtitle.segments.find(x=>x.id==='segment:BV1ofdnBZEi3:worlds-greatest-stretch').startSeconds,4805);
 assert.deepEqual(subtitle.segments.find(x=>x.id==='segment:BV1ofdnBZEi3:thoracic-extension').startSeconds,4942);
 console.log(JSON.stringify({passed:true,videos:map.videos.length,segments:map.segments.length,day2Segments:day2.length,subtitleVideo:{videos:subtitle.videos.length,segments:subtitle.segments.length,claims:subtitle.claims.length},claims:'subtitle_verified only'},null,2));
