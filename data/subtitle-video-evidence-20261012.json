@@ -25,7 +25,7 @@
     {"id":"course:warmup.lunge_thoracic_rotation.v1","courseCardId":"warmup.lunge_thoracic_rotation.v1"},
     {"id":"reference:cable-triceps-extension-leaning","referenceId":"cable-triceps-extension-leaning"},
     {"id":"reference:lying-barbell-triceps-extension","referenceId":"lying-barbell-triceps-extension"},
-    {"id":"reference:seated-cable-elbow-flexion-internal-rotation","referenceId":"seated-cable-elbow-flexion-internal-rotation"},
+    {"id":"reference:seated-cable-curl","referenceId":"seated-cable-curl"},
     {"id":"reference:incline-dumbbell-curl","referenceId":"incline-dumbbell-curl"},
     {"id":"reference:overhead-cable-extension","referenceId":"overhead-cable-extension"},
     {"id":"reference:cable-hammer-curl","referenceId":"cable-hammer-curl"}
@@ -38,7 +38,7 @@
     {"id":"variant:BV1ofdnBZEi3:knee-supported-cable-curl","actionId":"course:biceps.curl.cable.upperarm_supported_knee.v1","name":"膝上支撑绳索弯举"},
     {"id":"variant:BV18Jj66zEpV:leaning-cable-triceps-extension","actionId":"reference:cable-triceps-extension-leaning","name":"绳索俯身肩伸位臂屈伸"},
     {"id":"variant:BV18Jj66zEpV:incline-lying-barbell-extension","actionId":"reference:lying-barbell-triceps-extension","name":"约15°上斜仰卧杠铃臂屈伸"},
-    {"id":"variant:BV18Jj66zEpV:seated-cable-curl","actionId":"reference:seated-cable-elbow-flexion-internal-rotation","name":"坐姿绳索弯举（肩屈位、外旋半握）"},
+    {"id":"variant:BV18Jj66zEpV:seated-cable-curl","actionId":"reference:seated-cable-curl","name":"坐姿绳索弯举（肩屈位、外旋半握）"},
     {"id":"variant:BV18Jj66zEpV:incline-dumbbell-curl","actionId":"reference:incline-dumbbell-curl","name":"仰卧哑铃弯举（肩伸位）"},
     {"id":"variant:BV18Jj66zEpV:single-arm-overhead-extension","actionId":"reference:overhead-cable-extension","name":"单臂绳索颈后臂屈伸【单臂识别待确认】"},
     {"id":"variant:BV18Jj66zEpV:cable-hammer-curl","actionId":"reference:cable-hammer-curl","name":"绳索锤式弯举"}
@@ -57,7 +57,7 @@
     {"id":"segment:BV1ofdnBZEi3:worlds-greatest-stretch","videoId":"bv:BV1ofdnBZEi3","startSeconds":4805,"endSeconds":4845,"actionId":"course:warmup.lunge_thoracic_rotation.v1"},
     {"id":"segment:BV18Jj66zEpV:leaning-cable-triceps-extension","videoId":"bv:BV18Jj66zEpV","startSeconds":0,"endSeconds":270,"actionId":"reference:cable-triceps-extension-leaning","variantId":"variant:BV18Jj66zEpV:leaning-cable-triceps-extension"},
     {"id":"segment:BV18Jj66zEpV:incline-lying-barbell-extension","videoId":"bv:BV18Jj66zEpV","startSeconds":270,"endSeconds":456,"actionId":"reference:lying-barbell-triceps-extension","variantId":"variant:BV18Jj66zEpV:incline-lying-barbell-extension"},
-    {"id":"segment:BV18Jj66zEpV:seated-cable-curl","videoId":"bv:BV18Jj66zEpV","startSeconds":456,"endSeconds":591,"actionId":"reference:seated-cable-elbow-flexion-internal-rotation","variantId":"variant:BV18Jj66zEpV:seated-cable-curl"},
+    {"id":"segment:BV18Jj66zEpV:seated-cable-curl","videoId":"bv:BV18Jj66zEpV","startSeconds":456,"endSeconds":591,"actionId":"reference:seated-cable-curl","variantId":"variant:BV18Jj66zEpV:seated-cable-curl"},
     {"id":"segment:BV18Jj66zEpV:incline-dumbbell-curl","videoId":"bv:BV18Jj66zEpV","startSeconds":591,"endSeconds":805,"actionId":"reference:incline-dumbbell-curl","variantId":"variant:BV18Jj66zEpV:incline-dumbbell-curl"},
     {"id":"segment:BV18Jj66zEpV:single-arm-overhead-extension","videoId":"bv:BV18Jj66zEpV","startSeconds":805,"endSeconds":1013,"actionId":"reference:overhead-cable-extension","variantId":"variant:BV18Jj66zEpV:single-arm-overhead-extension"},
     {"id":"segment:BV18Jj66zEpV:cable-hammer-curl","videoId":"bv:BV18Jj66zEpV","startSeconds":1013,"endSeconds":1236,"actionId":"reference:cable-hammer-curl","variantId":"variant:BV18Jj66zEpV:cable-hammer-curl"}
@@ -74,7 +74,7 @@
     {"id":"claim:knee-supported-cable-curl:cues","segmentId":"segment:BV1ofdnBZEi3:knee-supported-cable-curl","kind":"cue","publicSummary":"大臂放膝上略前置；下放到肘微屈仍有阻力即可，手腕勾起不塌，顶端主动收紧。","sourceSpans":[[4357,4493]],"verification":"subtitle_verified"},
     {"id":"claim:knee-supported-cable-curl:dose","segmentId":"segment:BV1ofdnBZEi3:knee-supported-cable-curl","kind":"dose","publicSummary":"原课：动作做到位时，3组已是很强刺激；质量越高，能承受的总容量越低。","sourceSpans":[[4623,4645]],"verification":"subtitle_verified"},
     {"id":"claim:back-band-warmup:cues","segmentId":"segment:BV1ofdnBZEi3:band-shoulder-circles","kind":"cue","publicSummary":"肩部环绕不向前顶；从眼前到肩后即可，别完全下落而丢失张力。","sourceSpans":[[4847,4880]],"verification":"subtitle_verified"},
-    {"id":"claim:back-greatest-stretch:cues","segmentId":"segment:BV1ofdnBZEi3:worlds-greatest-stretch","kind":"cue","publicSummary":"伟大者伸展：同侧腿在前、对侧手穿过后吸气上旋；眼跟手指，约10次后换侧。","sourceSpans":[[4805,4844]],"verification":"subtitle_verified"},
+    {"id":"claim:back-greatest-stretch:cues","segmentId":"segment:BV1ofdnBZEi3:worlds-greatest-stretch","kind":"cue","publicSummary":"示范：左腿在前、右手在前，左手从右侧穿过后吸气上旋；眼跟手指，约10次后换侧。","sourceSpans":[[4805,4844]],"verification":"subtitle_verified"},
     {"id":"claim:back-thoracic-rolling:cues","segmentId":"segment:BV1ofdnBZEi3:thoracic-rolling","kind":"cue","publicSummary":"泡沫轴放胸椎，手向上延伸并保持前锯肌对抗，再受控活动；别整个人松掉。","sourceSpans":[[4883,4942]],"verification":"subtitle_verified"},
     {"id":"claim:back-thoracic-extension:cues","segmentId":"segment:BV1ofdnBZEi3:thoracic-extension","kind":"cue","publicSummary":"第二项是胸椎伸展，用于放松菱形肌与中下斜方；与前一项胸椎滚动分开记录。","sourceSpans":[[4942,4959]],"verification":"subtitle_verified"},
     {"id":"claim:back-quadruped:cues","segmentId":"segment:BV1ofdnBZEi3:quadruped-hold","kind":"cue","publicSummary":"四足位支撑可进阶为膝离地：吸气顶高、呼气维持，不做大幅伸展，目的偏稳定。","sourceSpans":[[4959,5001]],"verification":"subtitle_verified"},

@@ -24,4 +24,6 @@ assert.ok(subtitle.claims.some(x=>x.kind==='superset'&&x.segmentId==='segment:BV
 for(const segment of subtitle.segments.filter(x=>x.videoId==='bv:BV1ofdnBZEi3')){const claims=subtitle.claims.filter(x=>x.segmentId===segment.id);assert.ok(claims.some(x=>x.kind==='cue'),`missing back cue ${segment.id}`);assert.ok(claims.length>=2,`missing back detail ${segment.id}`)}
 assert.deepEqual(subtitle.segments.find(x=>x.id==='segment:BV1ofdnBZEi3:worlds-greatest-stretch').startSeconds,4805);
 assert.deepEqual(subtitle.segments.find(x=>x.id==='segment:BV1ofdnBZEi3:thoracic-extension').startSeconds,4942);
+const seatedCurl=subtitle.segments.find(x=>x.id==='segment:BV18Jj66zEpV:seated-cable-curl');assert.equal(seatedCurl.actionId,'reference:seated-cable-curl');assert.ok(!subtitle.actions.some(x=>x.id==='reference:seated-cable-elbow-flexion-internal-rotation'));
+const greatest=subtitle.claims.find(x=>x.id==='claim:back-greatest-stretch:cues').publicSummary;assert.match(greatest,/左腿在前、右手在前，左手从右侧穿过/);assert.doesNotMatch(greatest,/对侧手/);
 console.log(JSON.stringify({passed:true,videos:map.videos.length,segments:map.segments.length,day2Segments:day2.length,subtitleVideo:{videos:subtitle.videos.length,segments:subtitle.segments.length,claims:subtitle.claims.length},claims:'subtitle_verified only'},null,2));

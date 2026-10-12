@@ -1,5 +1,5 @@
 const app=document.querySelector('#app');
-const dataVersion='20261012-cache-consistent';
+const dataVersion='20261012-mapping-corrections';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const decode=v=>{try{return decodeURIComponent(v)}catch{return v}};
 const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV19AxrzQEEH:'115341850057826',BV1v5opBhEDc:'116447049226152',BV1tcraBTEqg:'115880667124445',BV17aovBqEdg:'116471191574369',BV1qF6wBaEWu:'115978847392380'};
