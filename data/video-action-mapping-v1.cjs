@@ -5,7 +5,6 @@ const maintenanceInstruction='收到健身视频后，自动提取字幕，按�
 const policy=Object.freeze({
   maintenanceInstruction,
   claimVerification:'subtitle_verified',
-  prohibitedVerification:'audio_verified',
   publicOutput:'只发布简短教学归纳，不发布完整字幕。'
 });
 
@@ -20,7 +19,9 @@ function buildMapping(content){
     if(typeof card.id!=='string'||typeof card.n!=='string'||typeof card.bv!=='string'||!Number.isFinite(+card.t))throw Error(`invalid course card: ${card?.id||'unknown'}`);
     const videoId=`bv:${card.bv}`,actionId=`course:${card.id}`,variantId=`variant:${card.id}`;
     if(!videos.has(videoId))videos.set(videoId,{id:videoId,bv:card.bv,origin:'course-content-20261009.json'});
-    actions.push({id:actionId,name:card.n,existingIds:{courseCardId:card.id}});
+    // A legacy card names one source segment, not a canonical exercise identity.
+    // Later subtitle imports may merge several of these into one action while retaining variants.
+    actions.push({id:actionId,name:card.n,identityStatus:'source_bound_not_canonical',existingIds:{courseCardId:card.id}});
     variants.push({id:variantId,actionId,name:card.n,existingIds:{courseCardId:card.id}});
     segments.push({id:`segment:${card.id}`,videoId,startSeconds:+card.t,actionId,variantId,origin:'legacy_timestamp'});
   }
