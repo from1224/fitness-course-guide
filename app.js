@@ -105,20 +105,25 @@ function courseDetail(c,i,id){
 function library(){let fs=['全部',...new Set(refs.map(x=>x.body).filter(Boolean))],items=refs.filter(x=>(ui.filter==='全部'||x.body===ui.filter)&&JSON.stringify(x).toLowerCase().includes(ui.q.toLowerCase()));const videos=(evidence?.videos||[]).map(v=>`<a class="secondary" href="${href(`video/${encodeURIComponent(v.bv)}`)}">字幕整理 · ${esc(v.title)}</a>`).join('');return shell(`<header class="hero"><div class="accent">查动作</div><h1>按名字、部位或器械找动作。</h1><p>参考动作与课程动作资料分开浏览；所有已整理的内容均可直达。</p></header><div class="actions"><a class="secondary" href="#content">浏览 64 项课程动作与教练口令</a>${videos}</div><div class="toolbar"><input id="search" class="search" placeholder="搜索动作、部位或器械" value="${esc(ui.q)}">${fs.map(x=>`<button class="filter ${ui.filter===x?'on':''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="muted">${items.length} 项参考动作</p><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.name)}</h2><span class="tag">${esc(x.body||'资料')}</span><p class="muted">${esc(x.training?.displayDose || (x.availability==='source_only'?'来源视频资料':''))}</p></div><a class="secondary" href="${href(`library/reference/${encodeURIComponent(x.id)}`)}">查看</a></article>`).join('')||'<p class="empty">没有符合的动作。试试更短的关键词。</p>'}</div>`,'library')}
 function libraryDetail(id){
   const x=ref(id);if(!x)return missing('找不到这个参考动作','library');
-  return detailLayout({name:x.name,subtitle:(x.body||'动作资料')+' · 参考动作',source:preferredSource(x),media:x.media,body:referenceBody(x)});
+  return detailLayout({name:x.name,subtitle:(x.body||'动作资料')+' · 参考动作',source:preferredSource(x),media:x.media,body:referenceBody(x)+evidenceSourcesFor({referenceId:id})});
 }
 function courseLibrary(){let q=ui.q.toLowerCase(),items=cards.filter(x=>JSON.stringify(x).toLowerCase().includes(q));return shell(`<header class="hero"><div class="accent">课程动作资料</div><h1>64 项课程动作与对应时间。</h1><p>教练口令、完整分段教学、补充与备注均保留在每个动作详情中。</p></header><div class="toolbar"><input id="search" class="search" placeholder="搜索课程动作" value="${esc(ui.q)}"><a class="secondary" href="#library">参考动作库</a></div><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.n)}</h2><span class="tag">${esc(x.role)}</span><p class="muted">${esc(overlay.get(x.id)?.cue||x.cues?.[0]?.text||'')}</p></div><a class="secondary" href="#library/course/${encodeURIComponent(x.id)}">完整要点</a></article>`).join('')}</div>`,'library')}
 function courseLibraryDetail(id){
   const c=cards.find(x=>x.id===id);if(!c)return missing('找不到课程动作','content');
-  return detailLayout({name:c.n,subtitle:(c.role||'')+' · '+(c.slot||''),source:{url:video(c.bv,c.t),timeText:Math.floor(c.t/60)+':'+String(Math.floor(c.t%60)).padStart(2,'0')},media:c.media,body:courseBody(id)});
+  return detailLayout({name:c.n,subtitle:(c.role||'')+' · '+(c.slot||''),source:{url:video(c.bv,c.t),timeText:Math.floor(c.t/60)+':'+String(Math.floor(c.t%60)).padStart(2,'0')},media:c.media,body:courseBody(id)+evidenceSourcesFor({courseCardId:id})});
 }
 function sourceTime(t){return `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`}
+function evidenceSourcesFor(match){
+  const linked=(evidence?.actions||[]).filter(a=>Object.entries(match).every(([k,v])=>a[k]===v));
+  const rows=linked.flatMap(a=>(evidence.segments||[]).filter(s=>s.actionId===a.id).map(s=>{const v=(evidence.videos||[]).find(x=>x.id===s.videoId);return v&&`<a class="secondary" href="${href(`video/${encodeURIComponent(v.bv)}`)}">字幕来源 · ${esc(v.title)} · ${sourceTime(s.startSeconds)}</a>`})).filter(Boolean);
+  return rows.length?`<section><h2>字幕整理来源</h2><div class="actions">${rows.join('')}</div></section>`:'';
+}
 function subtitleVideoPage(bv){
   const v=(evidence?.videos||[]).find(x=>x.bv===bv);if(!v)return missing('找不到这支字幕整理视频','library');
   const actions=new Map((evidence.actions||[]).map(x=>[x.id,x])),variants=new Map((evidence.variants||[]).map(x=>[x.id,x]));
   const rows=(evidence.segments||[]).filter(x=>x.videoId===v.id).map(s=>{
-    const action=actions.get(s.actionId),card=cards.find(x=>x.id===action?.courseCardId),variant=variants.get(s.variantId),claims=(evidence.claims||[]).filter(x=>x.segmentId===s.id),cue=claims.find(x=>x.kind==='cue'),dose=claims.filter(x=>x.kind==='dose'),detail=card?href(`library/course/${encodeURIComponent(card.id)}`):'';
-    return `<article class="card" data-detail-scope="subtitle:${esc(s.id)}"><div class="step-head"><div><span class="tag">${esc(variant?.name||card?.role||'热身／活动度')}</span><h2>${esc(card?.n||variant?.name||'背部热身／活动度')}</h2></div><span class="tag">${sourceTime(s.startSeconds)}</span></div>${cue?`<p><b>核心提示：</b>${esc(cue.publicSummary)}</p>`:'<p class="muted">本段仅保留视频定位；尚未整理可公开的核心提示。</p>'}<div class="actions"><a class="secondary" href="${esc(sourcePublicLink({bv:v.bv,t:s.startSeconds}))}">视频 · ${sourceTime(s.startSeconds)}</a>${detail?`<a class="secondary" href="${detail}">现有动作详情</a>`:''}</div>${claims.length?`<details><summary>展开字幕整理要点</summary>${claims.map(c=>`<p>${c.kind==='dose'?'<b>原课剂量：</b>':'<b>要点：</b>'}${esc(c.publicSummary)} <a href="${esc(sourcePublicLink({bv:v.bv,t:c.sourceSpans?.[0]?.[0]??s.startSeconds}))}">对应片段</a></p>`).join('')}</details>`:''}</article>`;
+    const action=actions.get(s.actionId),card=cards.find(x=>x.id===action?.courseCardId),reference=ref(action?.referenceId),variant=variants.get(s.variantId),claims=(evidence.claims||[]).filter(x=>x.segmentId===s.id),cue=claims.find(x=>x.kind==='cue'),detail=card?href(`library/course/${encodeURIComponent(card.id)}`):reference?href(`library/reference/${encodeURIComponent(reference.id)}`):'';
+    return `<article class="card" data-detail-scope="subtitle:${esc(s.id)}"><div class="step-head"><div><span class="tag">${esc(variant?.name||card?.role||reference?.body||'热身／活动度')}</span><h2>${esc(card?.n||reference?.name||variant?.name||'训练片段')}</h2></div><span class="tag">${sourceTime(s.startSeconds)}</span></div>${cue?`<p><b>核心提示：</b>${esc(cue.publicSummary)}</p>`:'<p class="muted">本段仅保留视频定位；尚未整理可公开的核心提示。</p>'}<div class="actions"><a class="secondary" href="${esc(sourcePublicLink({bv:v.bv,t:s.startSeconds}))}">视频 · ${sourceTime(s.startSeconds)}</a>${detail?`<a class="secondary" href="${detail}">现有动作详情</a>`:''}</div>${claims.length?`<details><summary>展开字幕整理要点</summary>${claims.map(c=>`<p>${c.kind==='dose'?'<b>原课剂量：</b>':c.kind==='superset'?'<b>组合：</b>':'<b>要点：</b>'}${esc(c.publicSummary)} <a href="${esc(sourcePublicLink({bv:v.bv,t:c.sourceSpans?.[0]?.[0]??s.startSeconds}))}">对应片段</a></p>`).join('')}</details>`:''}</article>`;
   }).join('');
   return shell(`<a class="back" href="#library">返回查动作</a><header class="hero"><div class="accent">字幕整理视频</div><h1>${esc(v.title)}</h1><p>${esc(v.creator)} · ${sourceTime(v.durationSeconds)} · 字幕时间戳整理</p><p class="muted">${esc(v.publicNote)}</p></header><div class="list">${rows}</div>`,'library');
 }
@@ -144,6 +149,7 @@ function render(){
 }
 function close(){
   const h=location.hash,m=h.match(/^#course\/([^/]+)\/(\d+)\/exercise\//),parent=m?`#course/${m[1]}/${m[2]}`:h.startsWith('#library/course/')?'#content':'#library';
+  if(history.state?.appNavigation&&/^#video\//.test(history.state.from||'')){history.back();return}
   if(history.state?.appNavigation&&history.state.from==='#tonight'){history.back();return}
   if(history.state?.appNavigation&&history.state.from===parent){history.back();return}
   navigate(parent,{replace:true,from:null});
