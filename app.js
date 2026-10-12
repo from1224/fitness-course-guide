@@ -1,4 +1,5 @@
 const app=document.querySelector('#app');
+const dataVersion='20261012-cache-consistent';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const decode=v=>{try{return decodeURIComponent(v)}catch{return v}};
 const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV19AxrzQEEH:'115341850057826',BV1v5opBhEDc:'116447049226152',BV1tcraBTEqg:'115880667124445',BV17aovBqEdg:'116471191574369',BV1qF6wBaEWu:'115978847392380'};
@@ -233,5 +234,5 @@ function setupListeners(){
   },400);
 }
 setupListeners();
-Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json','tonight-chest-hamstrings-20261011.json','subtitle-video-evidence-20261012.json'].map(n=>fetch(`./data/${n}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r,p,e])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');tonight=p;evidence=e;render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
+Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json','tonight-chest-hamstrings-20261011.json','subtitle-video-evidence-20261012.json'].map(n=>fetch(`./data/${n}?v=${dataVersion}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r,p,e])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');tonight=p;evidence=e;render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
 
