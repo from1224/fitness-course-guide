@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "videos": [{
+    "id": "bv:BV1ofdnBZEi3",
+    "bv": "BV1ofdnBZEi3",
+    "title": "三分化第二期背部，二头",
+    "creator": "谭成义",
+    "durationSeconds": 5049,
+    "verification": "subtitle_verified",
+    "publicNote": "本页仅整理带时间戳字幕中的简短教学要点；原课剂量不是个人训练计划。"
+  }],
+  "actions": [
+    {"id":"course:back.pulldown.single_arm.cable.lat.v1","courseCardId":"back.pulldown.single_arm.cable.lat.v1"},
+    {"id":"course:back.row.single_arm.machine.lat.v1","courseCardId":"back.row.single_arm.machine.lat.v1"},
+    {"id":"course:back.pulldown.neutral_grip.v1","courseCardId":"back.pulldown.neutral_grip.v1"},
+    {"id":"course:back.row.elbows_out.horizontal.upperback.v1","courseCardId":"back.row.elbows_out.horizontal.upperback.v1"},
+    {"id":"course:biceps.curl.cable.upperarm_supported_knee.v1","courseCardId":"biceps.curl.cable.upperarm_supported_knee.v1"},
+    {"id":"course:warmup.band_shoulder_circles.v1","courseCardId":"warmup.band_shoulder_circles.v1"},
+    {"id":"course:warmup.thoracic_rolling.overhead_reach.v1","courseCardId":"warmup.thoracic_rolling.overhead_reach.v1"},
+    {"id":"course:warmup.thoracic_extension.v1","courseCardId":"warmup.thoracic_extension.v1"},
+    {"id":"course:warmup.quadruped.support_hold.v1","courseCardId":"warmup.quadruped.support_hold.v1"},
+    {"id":"course:warmup.wall_elbow.isometric.v1","courseCardId":"warmup.wall_elbow.isometric.v1"}
+  ],
+  "variants": [
+    {"id":"variant:BV1ofdnBZEi3:single-arm-cable-pulldown","actionId":"course:back.pulldown.single_arm.cable.lat.v1","name":"单臂绳索下拉（背阔／大圆肌取向）"},
+    {"id":"variant:BV1ofdnBZEi3:single-arm-machine-row","actionId":"course:back.row.single_arm.machine.lat.v1","name":"单臂器械划船"},
+    {"id":"variant:BV1ofdnBZEi3:neutral-grip-pulldown","actionId":"course:back.pulldown.neutral_grip.v1","name":"对握高位下拉"},
+    {"id":"variant:BV1ofdnBZEi3:open-elbow-row","actionId":"course:back.row.elbows_out.horizontal.upperback.v1","name":"开肘水平拉"},
+    {"id":"variant:BV1ofdnBZEi3:knee-supported-cable-curl","actionId":"course:biceps.curl.cable.upperarm_supported_knee.v1","name":"膝上支撑绳索弯举"}
+  ],
+  "segments": [
+    {"id":"segment:BV1ofdnBZEi3:single-arm-cable-pulldown","videoId":"bv:BV1ofdnBZEi3","startSeconds":13,"endSeconds":1683,"actionId":"course:back.pulldown.single_arm.cable.lat.v1","variantId":"variant:BV1ofdnBZEi3:single-arm-cable-pulldown"},
+    {"id":"segment:BV1ofdnBZEi3:single-arm-machine-row","videoId":"bv:BV1ofdnBZEi3","startSeconds":1683,"endSeconds":3060,"actionId":"course:back.row.single_arm.machine.lat.v1","variantId":"variant:BV1ofdnBZEi3:single-arm-machine-row"},
+    {"id":"segment:BV1ofdnBZEi3:neutral-grip-pulldown","videoId":"bv:BV1ofdnBZEi3","startSeconds":3060,"endSeconds":3721,"actionId":"course:back.pulldown.neutral_grip.v1","variantId":"variant:BV1ofdnBZEi3:neutral-grip-pulldown"},
+    {"id":"segment:BV1ofdnBZEi3:open-elbow-row","videoId":"bv:BV1ofdnBZEi3","startSeconds":3721,"endSeconds":4352,"actionId":"course:back.row.elbows_out.horizontal.upperback.v1","variantId":"variant:BV1ofdnBZEi3:open-elbow-row"},
+    {"id":"segment:BV1ofdnBZEi3:knee-supported-cable-curl","videoId":"bv:BV1ofdnBZEi3","startSeconds":4352,"endSeconds":4636,"actionId":"course:biceps.curl.cable.upperarm_supported_knee.v1","variantId":"variant:BV1ofdnBZEi3:knee-supported-cable-curl"},
+    {"id":"segment:BV1ofdnBZEi3:band-shoulder-circles","videoId":"bv:BV1ofdnBZEi3","startSeconds":4845,"endSeconds":4879,"actionId":"course:warmup.band_shoulder_circles.v1"},
+    {"id":"segment:BV1ofdnBZEi3:thoracic-rolling","videoId":"bv:BV1ofdnBZEi3","startSeconds":4883,"endSeconds":4937,"actionId":"course:warmup.thoracic_rolling.overhead_reach.v1"},
+    {"id":"segment:BV1ofdnBZEi3:thoracic-extension","videoId":"bv:BV1ofdnBZEi3","startSeconds":4883,"endSeconds":4937,"actionId":"course:warmup.thoracic_extension.v1"},
+    {"id":"segment:BV1ofdnBZEi3:quadruped-hold","videoId":"bv:BV1ofdnBZEi3","startSeconds":4959,"endSeconds":4995,"actionId":"course:warmup.quadruped.support_hold.v1"},
+    {"id":"segment:BV1ofdnBZEi3:wall-elbow","videoId":"bv:BV1ofdnBZEi3","startSeconds":5001,"endSeconds":5048,"actionId":"course:warmup.wall_elbow.isometric.v1"}
+  ],
+  "claims": [
+    {"id":"claim:single-arm-cable-pulldown:cues","segmentId":"segment:BV1ofdnBZEi3:single-arm-cable-pulldown","kind":"cue","publicSummary":"凳与脚固定胸椎，躯干不后仰、不侧屈；回程让背阔拉长即可，别把肩胛完全送散。","sourceSpans":[[450,539],[347,368]],"verification":"subtitle_verified"},
+    {"id":"claim:single-arm-cable-pulldown:dose","segmentId":"segment:BV1ofdnBZEi3:single-arm-cable-pulldown","kind":"dose","publicSummary":"原课：约12次，前三组留余量；末组约10次至力竭、休5秒再5次。","sourceSpans":[[65,75],[376,389]],"verification":"subtitle_verified"},
+    {"id":"claim:single-arm-machine-row:cues","segmentId":"segment:BV1ofdnBZEi3:single-arm-machine-row","kind":"cue","publicSummary":"以背的有效拉长与回拉为准；不必为行程伸直手臂或把肩胛过度推出。","sourceSpans":[[1849,1899],[2803,3056]],"verification":"subtitle_verified"},
+    {"id":"claim:single-arm-machine-row:breathing","segmentId":"segment:BV1ofdnBZEi3:single-arm-machine-row","kind":"technique","publicSummary":"胸部支撑时做长呼长吸，给胸廓进气与背部展开留空间；接近力竭仍优先控制。","sourceSpans":[[2861,2879]],"verification":"subtitle_verified"},
+    {"id":"claim:neutral-grip-pulldown:cues","segmentId":"segment:BV1ofdnBZEi3:neutral-grip-pulldown","kind":"cue","publicSummary":"对握、微后倾，沿斜后方向拉；降肋收紧核心，背阔拉长即可，不追最大肩关节幅度。","sourceSpans":[[3194,3267]],"verification":"subtitle_verified"},
+    {"id":"claim:neutral-grip-pulldown:dose","segmentId":"segment:BV1ofdnBZEi3:neutral-grip-pulldown","kind":"dose","publicSummary":"原课：8–12次或12–8次的重量范围均可，以动作感觉为主，不必力竭。","sourceSpans":[[3149,3155]],"verification":"subtitle_verified"},
+    {"id":"claim:open-elbow-row:cues","segmentId":"segment:BV1ofdnBZEi3:open-elbow-row","kind":"cue","publicSummary":"开肘水平后拉补足中下斜方；躯干更后倾偏上部，更前坐偏下部，接近中立更像杠铃划船。","sourceSpans":[[3721,3852]],"verification":"subtitle_verified"},
+    {"id":"claim:open-elbow-row:dose","segmentId":"segment:BV1ofdnBZEi3:open-elbow-row","kind":"dose","publicSummary":"原课：12–15次，以感觉为主。","sourceSpans":[[3998,4012]],"verification":"subtitle_verified"},
+    {"id":"claim:knee-supported-cable-curl:cues","segmentId":"segment:BV1ofdnBZEi3:knee-supported-cable-curl","kind":"cue","publicSummary":"大臂放膝上略前置；下放到肘微屈仍有阻力即可，手腕勾起不塌，顶端主动收紧。","sourceSpans":[[4357,4493]],"verification":"subtitle_verified"},
+    {"id":"claim:knee-supported-cable-curl:dose","segmentId":"segment:BV1ofdnBZEi3:knee-supported-cable-curl","kind":"dose","publicSummary":"原课：动作做到位时，3组已是很强刺激；质量越高，能承受的总容量越低。","sourceSpans":[[4623,4645]],"verification":"subtitle_verified"},
+    {"id":"claim:back-warmup:cues","segmentId":"segment:BV1ofdnBZEi3:band-shoulder-circles","kind":"cue","publicSummary":"肩环绕不向前顶、不过度下落失张力；胸椎活动时保持前锯肌发力；四足位以稳定为主。","sourceSpans":[[4845,4995]],"verification":"subtitle_verified"}
+  ],
+  "conflicts": []
+}

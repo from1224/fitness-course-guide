@@ -2,6 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const content=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/course-content-20261009.json'),'utf8'));
 const {maintenanceInstruction,policy,buildMapping,addSubtitleClaim}=require('../data/video-action-mapping-v1.cjs');
 const map=buildMapping(content),cards=content.sourceCards;
+const subtitle=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/subtitle-video-evidence-20261012.json'),'utf8'));
 
 assert.equal(maintenanceInstruction,'收到健身视频后，自动提取字幕，按视频→动作→要点更新健身页并保留时间跳转；明显错字结合上下文纠正，拿不准的留待确认。');
 assert.equal(policy.claimVerification,'subtitle_verified');
@@ -16,4 +17,7 @@ const day2=map.segments.filter(x=>x.videoId==='bv:BV1v5opBhEDc');assert.equal(da
 const valid=addSubtitleClaim(map,{id:'claim:test',segmentId:day2[0].id,actionId:day2[0].actionId,kind:'cue',publicSummary:'保留动作路径。',verification:'subtitle_verified'});assert.equal(valid.verification,'subtitle_verified');
 assert.throws(()=>addSubtitleClaim(map,{...valid,verification:'audio_verified'}),/subtitle_verified/);
 assert.throws(()=>addSubtitleClaim(map,{...valid,segmentId:'segment:unknown'}),/segment/);
-console.log(JSON.stringify({passed:true,videos:map.videos.length,segments:map.segments.length,day2Segments:day2.length,claims:'subtitle_verified only'},null,2));
+assert.deepEqual(subtitle.videos.map(x=>x.bv),['BV1ofdnBZEi3']);assert.equal(subtitle.videos[0].verification,'subtitle_verified');assert.equal(subtitle.segments.length,10);assert.ok(subtitle.claims.length>=10);
+for(const segment of subtitle.segments){assert.ok(subtitle.actions.some(x=>x.id===segment.actionId));assert.ok(segment.endSeconds>segment.startSeconds)}
+for(const claim of subtitle.claims){assert.equal(claim.verification,'subtitle_verified');assert.ok(subtitle.segments.some(x=>x.id===claim.segmentId));assert.ok(claim.sourceSpans.every(([start,end])=>end>start));assert.ok(claim.publicSummary.length<120)}
+console.log(JSON.stringify({passed:true,videos:map.videos.length,segments:map.segments.length,day2Segments:day2.length,subtitleVideo:{segments:subtitle.segments.length,claims:subtitle.claims.length},claims:'subtitle_verified only'},null,2));

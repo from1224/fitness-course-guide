@@ -5,7 +5,7 @@ const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV
 const video=(bv,t=0)=>`bilibili://video/${videoIds[bv]||bv}?page=0&start_progress=${Math.max(0,Math.round(+t*1000))}`;
 const safe=u=>/^(https:|bilibili:|snssdk1128:|assets\/)/.test(u||'')?u:'#';
 const courses=[['chest-back','胸背两分化','推与拉交替，按当天器械替换。',[['barbell-bench-press','水平推',8,12,150],['narrow-seated-row','水平拉',8,12,120],['incline-dumbbell-chest-press','上斜推',8,12,120],['angled-handle-lat-pulldown','垂直拉',8,12,120]]],['glute-leg','臀腿两分化','膝主导、髋铰链、髋伸、屈膝四个槽位。',[['squat-pattern','蹲',8,12,150],['romanian-deadlift','髋铰链',8,12,150],['standing-cable-hip-extension','后踢腿髋伸',10,15,90],['prone-leg-curl','腿弯举屈膝',10,15,90]]]].map(([id,name,intro,steps])=>({id,name,intro,steps:steps.map(([ref,slot,min,max,rest])=>({ref,slot,min,max,rest}))}));
-let refs=[],cards=[],details=new Map(),full=new Map(),overlay=new Map(),labels={},tonight=null,ui={q:'',filter:'全部'};
+let refs=[],cards=[],details=new Map(),full=new Map(),overlay=new Map(),labels={},tonight=null,evidence=null,ui={q:'',filter:'全部'};
 const stateKey='chenglan-route-state-v1',trainKey='chenglan-training-v3';
 function readStored(key){try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&typeof x==='object'&&!Array.isArray(x)?x:null}catch{return null}}
 function normalizeTraining(value){
@@ -102,7 +102,7 @@ function courseDetail(c,i,id){
   const source=x.card?{url:video(x.card.bv,x.card.t),timeText:Math.floor(x.card.t/60)+':'+String(Math.floor(x.card.t%60)).padStart(2,'0')}:preferredSource(x);
   return detailLayout({name:x.name,subtitle:s.slot+' · 动作相关教学与来源',source,media:x.media,body:x.card?courseBody(id):referenceBody(x),active:'courses'});
 }
-function library(){let fs=['全部',...new Set(refs.map(x=>x.body).filter(Boolean))],items=refs.filter(x=>(ui.filter==='全部'||x.body===ui.filter)&&JSON.stringify(x).toLowerCase().includes(ui.q.toLowerCase()));return shell(`<header class="hero"><div class="accent">查动作</div><h1>按名字、部位或器械找动作。</h1><p>参考动作与课程动作资料分开浏览；所有已整理的内容均可直达。</p></header><div class="actions"><a class="secondary" href="#content">浏览 64 项课程动作与教练口令</a></div><div class="toolbar"><input id="search" class="search" placeholder="搜索动作、部位或器械" value="${esc(ui.q)}">${fs.map(x=>`<button class="filter ${ui.filter===x?'on':''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="muted">${items.length} 项参考动作</p><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.name)}</h2><span class="tag">${esc(x.body||'资料')}</span><p class="muted">${esc(x.training?.displayDose || (x.availability==='source_only'?'来源视频资料':''))}</p></div><a class="secondary" href="${href(`library/reference/${encodeURIComponent(x.id)}`)}">查看</a></article>`).join('')||'<p class="empty">没有符合的动作。试试更短的关键词。</p>'}</div>`,'library')}
+function library(){let fs=['全部',...new Set(refs.map(x=>x.body).filter(Boolean))],items=refs.filter(x=>(ui.filter==='全部'||x.body===ui.filter)&&JSON.stringify(x).toLowerCase().includes(ui.q.toLowerCase()));const videos=(evidence?.videos||[]).map(v=>`<a class="secondary" href="${href(`video/${encodeURIComponent(v.bv)}`)}">字幕整理 · ${esc(v.title)}</a>`).join('');return shell(`<header class="hero"><div class="accent">查动作</div><h1>按名字、部位或器械找动作。</h1><p>参考动作与课程动作资料分开浏览；所有已整理的内容均可直达。</p></header><div class="actions"><a class="secondary" href="#content">浏览 64 项课程动作与教练口令</a>${videos}</div><div class="toolbar"><input id="search" class="search" placeholder="搜索动作、部位或器械" value="${esc(ui.q)}">${fs.map(x=>`<button class="filter ${ui.filter===x?'on':''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="muted">${items.length} 项参考动作</p><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.name)}</h2><span class="tag">${esc(x.body||'资料')}</span><p class="muted">${esc(x.training?.displayDose || (x.availability==='source_only'?'来源视频资料':''))}</p></div><a class="secondary" href="${href(`library/reference/${encodeURIComponent(x.id)}`)}">查看</a></article>`).join('')||'<p class="empty">没有符合的动作。试试更短的关键词。</p>'}</div>`,'library')}
 function libraryDetail(id){
   const x=ref(id);if(!x)return missing('找不到这个参考动作','library');
   return detailLayout({name:x.name,subtitle:(x.body||'动作资料')+' · 参考动作',source:preferredSource(x),media:x.media,body:referenceBody(x)});
@@ -111,6 +111,16 @@ function courseLibrary(){let q=ui.q.toLowerCase(),items=cards.filter(x=>JSON.str
 function courseLibraryDetail(id){
   const c=cards.find(x=>x.id===id);if(!c)return missing('找不到课程动作','content');
   return detailLayout({name:c.n,subtitle:(c.role||'')+' · '+(c.slot||''),source:{url:video(c.bv,c.t),timeText:Math.floor(c.t/60)+':'+String(Math.floor(c.t%60)).padStart(2,'0')},media:c.media,body:courseBody(id)});
+}
+function sourceTime(t){return `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`}
+function subtitleVideoPage(bv){
+  const v=(evidence?.videos||[]).find(x=>x.bv===bv);if(!v)return missing('找不到这支字幕整理视频','library');
+  const actions=new Map((evidence.actions||[]).map(x=>[x.id,x])),variants=new Map((evidence.variants||[]).map(x=>[x.id,x]));
+  const rows=(evidence.segments||[]).filter(x=>x.videoId===v.id).map(s=>{
+    const action=actions.get(s.actionId),card=cards.find(x=>x.id===action?.courseCardId),variant=variants.get(s.variantId),claims=(evidence.claims||[]).filter(x=>x.segmentId===s.id),cue=claims.find(x=>x.kind==='cue'),dose=claims.filter(x=>x.kind==='dose'),detail=card?href(`library/course/${encodeURIComponent(card.id)}`):'';
+    return `<article class="card" data-detail-scope="subtitle:${esc(s.id)}"><div class="step-head"><div><span class="tag">${esc(variant?.name||card?.role||'热身／活动度')}</span><h2>${esc(card?.n||variant?.name||'背部热身／活动度')}</h2></div><span class="tag">${sourceTime(s.startSeconds)}</span></div>${cue?`<p><b>核心提示：</b>${esc(cue.publicSummary)}</p>`:'<p class="muted">本段仅保留视频定位；尚未整理可公开的核心提示。</p>'}<div class="actions"><a class="secondary" href="${esc(sourcePublicLink({bv:v.bv,t:s.startSeconds}))}">视频 · ${sourceTime(s.startSeconds)}</a>${detail?`<a class="secondary" href="${detail}">现有动作详情</a>`:''}</div>${claims.length?`<details><summary>展开字幕整理要点</summary>${claims.map(c=>`<p>${c.kind==='dose'?'<b>原课剂量：</b>':'<b>要点：</b>'}${esc(c.publicSummary)} <a href="${esc(sourcePublicLink({bv:v.bv,t:c.sourceSpans?.[0]?.[0]??s.startSeconds}))}">对应片段</a></p>`).join('')}</details>`:''}</article>`;
+  }).join('');
+  return shell(`<a class="back" href="#library">返回查动作</a><header class="hero"><div class="accent">字幕整理视频</div><h1>${esc(v.title)}</h1><p>${esc(v.creator)} · ${sourceTime(v.durationSeconds)} · 字幕时间戳整理</p><p class="muted">${esc(v.publicNote)}</p></header><div class="list">${rows}</div>`,'library');
 }
 const tonightKey='fitness-tonight-plan-v1';
 function publicVideo(s){if(s.url)return s.url;return `https://www.bilibili.com/video/${s.bv}/?t=${Math.floor(s.t||0)}`}
@@ -127,8 +137,8 @@ function render(){
   let h=location.hash||'#courses';
   if(!location.hash)history.replaceState({...history.state},'',h);
   if(h==='#training'||h==='#tools'){location.replace('./training-tools.html');return}
-  const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/);
-  app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
+  const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/),v=h.match(/^#video\/([^/]+)$/);
+  app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):v?subtitleVideoPage(decode(v[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
   restoreDetails(saved?.details);
   requestAnimationFrame(()=>scrollTo(0,saved?.scrollY||0));
 }
@@ -217,5 +227,5 @@ function setupListeners(){
   },400);
 }
 setupListeners();
-Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json','tonight-chest-hamstrings-20261011.json'].map(n=>fetch(`./data/${n}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r,p])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');tonight=p;render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
+Promise.all(['course-content-20261009.json','coach-cues-20261009.json','course-full-detail-20261009.json','authorized-reference.json','tonight-chest-hamstrings-20261011.json','subtitle-video-evidence-20261012.json'].map(n=>fetch(`./data/${n}`).then(r=>r.ok?r.json():Promise.reject(Error(n))))).then(([c,o,f,r,p,e])=>{cards=c.sourceCards;details=new Map(c.details.map(x=>[x.id,x]));overlay=new Map(o.overlays.map(x=>[x.id,x]));labels=f.section_labels||{};full=new Map(f.cards.map(x=>[x.id,x]));refs=r.entries.filter(x=>x.detailStatus==='read'||x.detailStatus==='partial');tonight=p;evidence=e;render()}).catch(e=>app.innerHTML=missing(`资料加载失败：${e.message}`,'courses'));
 

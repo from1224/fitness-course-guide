@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=process.env.DATA_DIR||path.join(__dirname,'../data');
 const source=fs.readFileSync(process.env.APP_PATH||path.join(__dirname,'../app.js'),'utf8');
 const load=n=>JSON.parse(fs.readFileSync(path.join(root,n),'utf8'));
-const data={reference:load('authorized-reference.json'),content:load('course-content-20261009.json'),full:load('course-full-detail-20261009.json'),overlay:load('coach-cues-20261009.json')};
+const data={reference:load('authorized-reference.json'),content:load('course-content-20261009.json'),full:load('course-full-detail-20261009.json'),overlay:load('coach-cues-20261009.json'),evidence:load('subtitle-video-evidence-20261012.json')};
 const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
 function environment({hash='#courses',local={},session={},state=null}={}){
   const localMap=new Map(Object.entries(local)),sessionMap=new Map(Object.entries(session)),listeners={},windowListeners={},frames=[],timers=[];
@@ -47,5 +47,6 @@ nav.ctx.history.forward();assert.equal(nav.ctx.location.hash,'#library/reference
 const navReload=environment({hash:'#library',session:Object.fromEntries(nav.sessionMap),state:clone(nav.ctx.history.state)});navReload.run('render()');assert.equal(navReload.run('ui.q'),'杠铃卧推');assert.ok(navReload.app.innerHTML.includes('value=\"杠铃卧推\"'));assert.equal(navReload.ctx.scrollY,480);
 for(const [hash,parent] of [['#library/course/BV17aovBqEdg%3Abarbell_romanian_deadlift','#content'],['#library/reference/barbell-bench-press','#library'],['#course/chest-back/0/exercise/barbell-bench-press','#course/chest-back/0']]){const direct=environment({hash});direct.run('render();close()');assert.equal(direct.ctx.location.hash,parent);assert.equal(direct.stackLength(),1)}
 const oldRoute=environment({hash:'#training'});oldRoute.run('render()');assert.equal(oldRoute.ctx.external,'./training-tools.html');
+const subtitle=environment({hash:'#video/BV1ofdnBZEi3'});subtitle.run("cards=data.content.sourceCards;evidence=data.evidence;render()");assert.ok(subtitle.app.innerHTML.includes('三分化第二期背部，二头'));assert.ok(subtitle.app.innerHTML.includes('视频 · 0:13'));assert.ok(subtitle.app.innerHTML.includes('核心提示'));assert.ok(subtitle.app.innerHTML.includes('原课剂量'));assert.ok(subtitle.app.innerHTML.includes('展开字幕整理要点'));assert.ok(!subtitle.app.innerHTML.includes('哈喽兄弟姐妹们'));assert.ok(subtitle.app.innerHTML.includes('https://www.bilibili.com/video/BV1ofdnBZEi3/?t=13'));
 console.log(JSON.stringify({passed:true,...summary,migration:'legacy and corrupt-current fallback; current wins',training:'rest selection, paused reload, restart cancellation and confirmation',navigation:'close, Back/Forward, reload query/filter/scroll, direct-link parent, old tools alias'},null,2));
 
