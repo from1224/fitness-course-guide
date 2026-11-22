@@ -1,5 +1,5 @@
 const app=document.querySelector('#app');
-const dataVersion='20261122-leg-session';
+const dataVersion='20261122-training-guide';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const decode=v=>{try{return decodeURIComponent(v)}catch{return v}};
 const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV19AxrzQEEH:'115341850057826',BV1v5opBhEDc:'116447049226152',BV1tcraBTEqg:'115880667124445',BV17aovBqEdg:'116471191574369',BV1qF6wBaEWu:'115978847392380'};
@@ -69,7 +69,9 @@ function restorePlace(h=location.hash||'#courses'){
 }
 function href(route){return `#${route}`}
 function shell(body,active='courses'){
-  return `<div class="shell"><aside class="side"><div class="brand">澄蓝训练<span>把课程带进每一次训练</span></div><nav class="nav" aria-label="主导航"><a class="${active==='courses'?'on':''}" href="#courses">训练课程</a><a class="${active==='tonight'?'on':''}" href="#tonight">今晚清单</a><a class="${active==='library'?'on':''}" href="#library">查动作</a><a href="./training-tools.html">训练工具</a></nav></aside><section>${body}</section></div>`;
+  const nav=[['courses','训练','今日训练','#courses'],['library','动作库','动作库','#library'],['tools','工具','自定义计划和计时','./training-tools.html']];
+  const section=active==='tonight'?'courses':active;
+  return `<div class="shell"><aside class="side"><a class="brand" href="#courses">澄蓝训练</a><nav class="nav" aria-label="主导航">${nav.map(([key,name,label,url])=>`<a href="${url}" aria-label="${label}"${section===key?' class="on" aria-current="true"':''}>${name}</a>`).join('')}</nav></aside><section class="page">${body}</section></div>`;
 }
 function course(id){return courses.find(x=>x.id===id)}function step(c,i){return course(c)?.steps[+i]}
 function ref(id){return refs.find(x=>x.id===id)}
@@ -90,8 +92,31 @@ function inlineTeaching(id,card){
   return {cue,notes};
 }
 function inlineVideoLinks(sources){return (sources||[]).map(s=>`<a class="secondary" href="${esc(sourcePublicLink(s))}">视频 · ${esc(s.topic||s.label||s.timeText||'原片')}${s.bv?` · ${Math.floor(s.t/60)}:${String(Math.floor(s.t%60)).padStart(2,'0')}`:''}</a>`).join('')}
-const LEG_WARMUP='#course/glute-leg/warmup',LEG_MAIN='#course/glute-leg/0',LEG_COOLDOWN='#course/glute-leg/cooldown';
-const legStageLinks=[['warmup','01','热身',LEG_WARMUP],['main','02','主训练',LEG_MAIN],['cooldown','03','降速与拉伸',LEG_COOLDOWN]];
+const phaseRoute=(c,stage)=>`#course/${c}/${stage}`;
+const LEG_WARMUP=phaseRoute('glute-leg','warmup'),LEG_MAIN=phaseRoute('glute-leg',0),LEG_COOLDOWN=phaseRoute('glute-leg','cooldown');
+const isPhaseHash=h=>/^#course\/(?:glute-leg|chest-back)\/(?:warmup|cooldown)$/.test(h||'');
+const stretchOriginal='https://www.bilibili.com/video/BV1EkV96nEyg/';
+const chestSupport={
+  warmup:{
+    title:'热身',intro:'从谭成义胸、背两节课的热身片段各选一项。不照搬整节课，也不要求两项都做。',
+    source:'https://www.bilibili.com/video/BV1CSoKBaEgK/?t=4796',sourceLabel:'胸部原课 · 1:19:56',
+    extraSource:'https://www.bilibili.com/video/BV1v5opBhEDc/?t=4882',extraSourceLabel:'背部原课 · 1:21:22',
+    rows:[
+      ['band_pull_apart_small_range_trunk_stable','course','弹力带小幅前后拉开','躯干保持不动，弹力带不松掉；先看原片确认手的位置。'],
+      ['warmup.thoracic_rolling.overhead_reach.v1','course','胸椎滚动配合手臂上伸','按原片确认泡沫轴位置和手臂方向，再决定幅度。'],
+    ],
+    note:'这两项是热身参考，不替代主训练动作。先看示范，不在疼痛范围内硬做。'
+  },
+  cooldown:{
+    title:'降速与拉伸',intro:'从谭成义的拉伸课分别选一项胸和背的练习。是可选的主动对抗，不是必须完成的静态拉伸。',
+    source:stretchOriginal,sourceLabel:'看 B 站原片 · 好的训练就是拉伸',
+    rows:[
+      ['wall-chest-stretch','reference','胸部 · 靠墙屈肘','目标侧手掌靠墙，肘略屈，同侧脚在前；轻轻把胸部向前带，避免把压力推到肩。'],
+      ['rack-back-rotation-stretch','reference','背部 · 扶架旋转','先看原片确认扶架位置和转向；在拉长位轻轻对抗，再回正换侧。'],
+    ],
+    note:'这是胸背训练的选材，不是原课的固定顺序。觉得不舒服就减小幅度或跳过。'
+  }
+};
 const legSupport={
   warmup:{
     title:'热身',intro:'从《凯圣王–谭成义三分化⑤》选两项开场动态热身，不是整段热身照搬。',
@@ -113,22 +138,35 @@ const legSupport={
     note:'动作库记录：片中示例多为约 5 秒的主动对抗，通常三组。轻力即可，不硬顶；出现尖锐疼痛就停止。'
   }
 };
-function legStageNav(active){
-  return `<nav class="leg-stages" aria-label="臀腿训练阶段">${legStageLinks.map(([key,n,name,url])=>`<a href="${url}"${key===active?' aria-current="step"':''}><span>${n}</span>${name}</a>`).join('')}</nav>`;
+function firstPending(c){
+  const s=train.sessions[c];
+  if(!s)return 0;
+  if(s.rest&&(s.rest.paused||(!s.rest.finished&&s.rest.deadline>Date.now())))return s.rest.i;
+  const i=course(c).steps.findIndex((_,i)=>(Number(s.done[i])||0)<2);
+  return i<0?3:i;
 }
-function legSupportStage(stage){
-  const warm=stage==='warmup',plan=legSupport[stage];
+function stageNav(c,active,index=firstPending(c)){
+  const rows=[['warmup','01','热身',phaseRoute(c,'warmup')],['main','02','主训练',phaseRoute(c,index)],['cooldown','03','降速与拉伸',phaseRoute(c,'cooldown')]];
+  return `<nav class="leg-stages" aria-label="${esc(course(c).name)}阶段">${rows.map(([key,n,name,url])=>`<a href="${url}"${key===active?' aria-current="step"':''}><span>${n}</span>${name}</a>`).join('')}</nav>`;
+}
+function supportStage(c,stage){
+  const warm=stage==='warmup',plan=(c==='glute-leg'?legSupport:chestSupport)[stage];
   const rows=plan.rows.map(([id,type,name,note])=>`<li><b>${esc(name)}</b><p>${esc(note)}</p><a class="phase-detail" href="#library/${type}/${encodeURIComponent(id)}">动作要点与原片</a></li>`).join('');
   const extra=warm?'':'<p class="muted phase-sources">通用补充（非谭成义原课）：可先逐步放慢走路，呼吸平稳再拉伸。<a href="https://www.orthoinfo.org/en/staying-healthy/warm-up-cool-down-and-be-flexible/">AAOS 降速参考</a></p>';
-  return shell(`<section class="leg-session"><a class="back" href="#courses">返回课程</a><header class="hero phase-hero"><div class="accent">臀腿两分化 · ${warm?'01 / 03':'03 / 03'}</div><h1>${esc(plan.title)}</h1><p>${esc(plan.intro)}</p></header>${legStageNav(stage)}<article class="card phase-card"><ol class="phase-list">${rows}</ol><p class="phase-note">${esc(plan.note)}</p></article><p class="muted phase-sources"><a href="${plan.source}">${esc(plan.sourceLabel)}</a></p>${extra}<div class="actions phase-actions">${warm?`<a class="primary" href="${LEG_MAIN}">进入主训练</a>`:'<a class="primary" href="#courses">返回课程</a><a class="back" href="#course/glute-leg/3">回到最后一项</a>'}</div></section>`);
+  return shell(`<section class="leg-session"><a class="back" href="#courses">返回训练</a><header class="hero phase-hero"><div class="accent">${esc(course(c).name)} · ${warm?'01 / 03':'03 / 03'}</div><h1>${esc(plan.title)}</h1><p>${esc(plan.intro)}</p></header>${stageNav(c,stage)}<article class="card phase-card"><ol class="phase-list">${rows}</ol><p class="phase-note">${esc(plan.note)}</p></article><div class="phase-sources actions"><a class="secondary" href="${plan.source}">${esc(plan.sourceLabel)}</a>${plan.extraSource?`<a class="secondary" href="${plan.extraSource}">${esc(plan.extraSourceLabel)}</a>`:''}</div>${extra}<div class="actions phase-actions">${warm?`<a class="primary" href="${phaseRoute(c,firstPending(c))}">进入主训练</a>`:`<a class="primary" href="#courses">返回训练</a><a class="back" href="${phaseRoute(c,3)}">回到最后一项</a>`}</div></section>`);
 }
-function courseHome(){return shell(`<section class="course-home"><header class="hero"><div class="accent">训练课程</div><h1>今天练什么？</h1></header><div class="grid">${[...courses].reverse().map(c=>{const leg=c.id==='glute-leg';return `<article class="card${leg?' course-feature':''}"><h2>${esc(c.name)}</h2><p>${esc(c.intro)}</p><p class="muted">${leg?'热身 → 4 个主动作 → 降速与拉伸':'4 个动作槽位 · 可替换 · 进度与休息计时会保存'}</p><div class="actions"><a class="primary" href="${leg?LEG_WARMUP:href(`course/${c.id}/0`)}">${leg?'从热身开始':'开始胸背训练'}</a>${leg?`<a class="secondary" href="${LEG_MAIN}">直接进入主训练</a>`:''}</div></article>`;}).join('')}</div><section class="tools"><h2>其他训练计划</h2><a class="secondary" href="#tonight">打开胸部＋腿后侧清单</a></section></section>`);}
+function courseHome(){
+  return shell(`<section class="course-home"><header class="hero"><div class="accent">今日训练</div><h1>今天练什么？</h1><p>选一套直接开始。练到一半也能从原处接着练。</p></header><div class="grid">${[...courses].reverse().map((c,i)=>{
+    const done=c.steps.reduce((n,_,i)=>n+(Number(train.sessions[c.id]?.done[i])||0),0),resume=done>0&&done<8,finished=done===8;
+    const names=c.steps.map(x=>x.slot).join(' · ');
+    return `<article class="card training-choice"><div class="accent">0${i+1} / 训练课程</div><h2>${esc(c.name)}</h2><p>${esc(names)}</p><p class="muted">${done?`主训练累计 ${done} / 8 组`:'热身 → 4 个主动作 → 降速与拉伸'}</p><div class="actions"><a class="primary" href="${resume?phaseRoute(c.id,firstPending(c.id)):phaseRoute(c.id,finished?'cooldown':'warmup')}">${resume?'继续主训练':finished?'去降速与拉伸':'从热身开始'}</a><a class="secondary" href="${resume?phaseRoute(c.id,'warmup'):phaseRoute(c.id,finished?3:0)}">${resume?'看热身':finished?'查看上一轮':'直接进入主训练'}</a></div></article>`;
+  }).join('')}</div><section class="tools other-plan"><div><h2>其他训练计划</h2><p class="muted">可以现场改组数、次数，或跳过某项。</p></div><a class="secondary" href="#tonight">胸部＋腿后侧清单</a></section></section>`);
+}
 function renderCourse(c,i){
   const s=step(c,i),a=s&&choice(c,i);if(!s||!a)return missing('课程步骤不存在','courses');
   const state=session(c),done=Math.min(2,Math.max(0,+state.done[i]||0)),rest=state.rest?.i===+i?state.rest:null,remain=rest?(rest.paused?rest.left:Math.max(0,rest.deadline-Date.now())):0,seconds=state.restSeconds[i]||s.rest;
-  const leg=c==='glute-leg';
   const teach=inlineTeaching(a.id,a.card),sources=a.card?[{bv:a.card.bv,t:a.card.t,topic:'本课程动作片段'}]:[preferredSource(a)].filter(Boolean);
-  return shell(`<section class="course-steps${leg?' leg-session':''}"><a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header>${leg?legStageNav('main'):''}<article class="card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card" data-detail-scope="course:${esc(a.id)}"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">完整动作详情</a></div><details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:leg?`<a class="primary" href="${LEG_COOLDOWN}">去降速与拉伸</a><button data-action="restart">开始新一轮</button>`:'<button class="primary" data-action="restart">开始新一轮</button>'}</div></section>`);
+  return shell(`<section class="course-steps leg-session"><a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header>${stageNav(c,'main',+i)}<div class="quick-actions actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">动作详情</a></div><article class="card set-card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card" data-detail-scope="course:${esc(a.id)}"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:`<a class="primary" href="${phaseRoute(c,'cooldown')}">去降速与拉伸</a><button data-action="restart">开始新一轮</button>`}</div></section>`);
 }
 function courseDetail(c,i,id){
   const s=step(c,i),x=s&&atoms(s).find(v=>v.id===id);
@@ -136,12 +174,15 @@ function courseDetail(c,i,id){
   const source=x.card?{url:video(x.card.bv,x.card.t),timeText:Math.floor(x.card.t/60)+':'+String(Math.floor(x.card.t%60)).padStart(2,'0')}:preferredSource(x);
   return detailLayout({name:x.name,subtitle:s.slot+' · 动作相关教学与来源',source,media:x.media,body:x.card?courseBody(id):referenceBody(x),active:'courses'});
 }
-function library(){let fs=['全部',...new Set(refs.map(x=>x.body).filter(Boolean))],items=refs.filter(x=>(ui.filter==='全部'||x.body===ui.filter)&&JSON.stringify(x).toLowerCase().includes(ui.q.toLowerCase()));const videos=(evidence?.videos||[]).map(v=>`<a class="secondary" href="${href(`video/${encodeURIComponent(v.bv)}`)}">字幕整理 · ${esc(v.title)}</a>`).join('');return shell(`<header class="hero"><div class="accent">查动作</div><h1>按名字、部位或器械找动作。</h1><p>参考动作与课程动作资料分开浏览；所有已整理的内容均可直达。</p></header><div class="actions"><a class="secondary" href="#content">浏览 64 项课程动作与教练口令</a>${videos}</div><div class="toolbar"><input id="search" class="search" placeholder="搜索动作、部位或器械" value="${esc(ui.q)}">${fs.map(x=>`<button class="filter ${ui.filter===x?'on':''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div><p class="muted">${items.length} 项参考动作</p><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.name)}</h2><span class="tag">${esc(x.body||'资料')}</span><p class="muted">${esc(x.training?.displayDose || (x.availability==='source_only'?'来源视频资料':''))}</p></div><a class="secondary" href="${href(`library/reference/${encodeURIComponent(x.id)}`)}">查看</a></article>`).join('')||'<p class="empty">没有符合的动作。试试更短的关键词。</p>'}</div>`,'library')}
+function libraryTabs(active){
+  return `<nav class="lib-tabs" aria-label="动作库分类">${[['library','参考动作'],['content','课程动作']].map(([key,label])=>`<a href="#${key}"${active===key?' aria-current="page"':''}>${label}</a>`).join('')}</nav>`;
+}
+function library(){let fs=['全部',...new Set(refs.map(x=>x.body).filter(Boolean))],items=refs.filter(x=>(ui.filter==='全部'||x.body===ui.filter)&&JSON.stringify(x).toLowerCase().includes(ui.q.toLowerCase()));const videos=(evidence?.videos||[]).map(v=>`<a class="secondary" href="${href(`video/${encodeURIComponent(v.bv)}`)}">字幕整理 · ${esc(v.title)}</a>`).join('');return shell(`<header class="hero"><div class="accent">查动作</div><h1>动作库</h1><p>按名字、部位或器械找动作。</p></header>${libraryTabs('library')}<div class="toolbar"><input type="search" aria-label="搜索动作" id="search" class="search" placeholder="搜索动作、部位或器械" value="${esc(ui.q)}">${fs.map(x=>`<button class="filter ${ui.filter===x?'on':''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div>${videos?`<details class="source-index"><summary>按原片浏览字幕整理</summary><div class="actions">${videos}</div></details>`:''}<p class="muted">${items.length} 项参考动作</p><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.name)}</h2><span class="tag">${esc(x.body||'资料')}</span><p class="muted">${esc(x.training?.displayDose || (x.availability==='source_only'?'来源视频资料':''))}</p></div><a class="secondary" href="${href(`library/reference/${encodeURIComponent(x.id)}`)}">查看</a></article>`).join('')||'<p class="empty">没有符合的动作。试试更短的关键词。</p>'}</div>`,'library')}
 function libraryDetail(id){
   const x=ref(id);if(!x)return missing('找不到这个参考动作','library');
   return detailLayout({name:x.name,subtitle:(x.body||'动作资料')+' · 参考动作',source:preferredSource(x),media:x.media,body:referenceBody(x)+evidenceSourcesFor({referenceId:id})});
 }
-function courseLibrary(){let q=ui.q.toLowerCase(),items=cards.filter(x=>JSON.stringify(x).toLowerCase().includes(q));return shell(`<header class="hero"><div class="accent">课程动作资料</div><h1>64 项课程动作与对应时间。</h1><p>教练口令、完整分段教学、补充与备注均保留在每个动作详情中。</p></header><div class="toolbar"><input id="search" class="search" placeholder="搜索课程动作" value="${esc(ui.q)}"><a class="secondary" href="#library">参考动作库</a></div><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.n)}</h2><span class="tag">${esc(x.role)}</span><p class="muted">${esc(overlay.get(x.id)?.cue||x.cues?.[0]?.text||'')}</p></div><a class="secondary" href="#library/course/${encodeURIComponent(x.id)}">完整要点</a></article>`).join('')}</div>`,'library')}
+function courseLibrary(){let q=ui.q.toLowerCase(),items=cards.filter(x=>JSON.stringify(x).toLowerCase().includes(q));return shell(`<header class="hero"><div class="accent">课程动作资料</div><h1>课程动作</h1><p>共 ${cards.length} 项。每个动作保留口令、完整讲解和视频时间。</p></header>${libraryTabs('content')}<div class="toolbar"><input type="search" aria-label="搜索动作" id="search" class="search" placeholder="搜索课程动作" value="${esc(ui.q)}"></div><div class="list">${items.map(x=>`<article class="item"><div class="item-main"><h2>${esc(x.n)}</h2><span class="tag">${esc(x.role)}</span><p class="muted">${esc(overlay.get(x.id)?.cue||x.cues?.[0]?.text||'')}</p></div><a class="secondary" href="#library/course/${encodeURIComponent(x.id)}">完整要点</a></article>`).join('')}</div>`,'library')}
 function courseLibraryDetail(id){
   const c=cards.find(x=>x.id===id);if(!c)return missing('找不到课程动作','content');
   return detailLayout({name:c.n,subtitle:(c.role||'')+' · '+(c.slot||''),source:{url:video(c.bv,c.t),timeText:Math.floor(c.t/60)+':'+String(Math.floor(c.t%60)).padStart(2,'0')},media:c.media,body:courseBody(id)});
@@ -169,7 +210,7 @@ function tonightDetailHref(id){return ref(id)?href(`library/reference/${encodeUR
 function tonightPlan(){
   if(!tonight)return shell('<p class="loading">正在加载今晚清单…</p>','tonight');const state=tonightState();
   const row=(s)=>{const own=state.steps[s.actionId]||{},sets=own.sets??s.sets,reps=own.reps??s.reps,skip=!!own.skip,detail=tonightDetailHref(s.actionId),card=cards.find(x=>x.id===s.actionId),teach=inlineTeaching(s.actionId,card),long=card?courseBody(card.id):ref(s.actionId)?referenceBody(ref(s.actionId)):'';return `<article class="card" data-detail-scope="tonight:${esc(s.actionId)}" ${skip?'style="opacity:.58"':''}><div class="step-head"><div><span class="tag">${esc(s.role)}</span><h2>${esc(s.name)}</h2></div><label class="muted"><input type="checkbox" data-tonight-skip="${esc(s.actionId)}" ${skip?'checked':''}> 跳过</label></div><p class="muted">建议 ${esc(String(sets))} 组 · ${esc(String(reps))}${s.rest?` · 休息 ${s.rest} 秒`:''}；可现场修改。</p>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">未解析短口诀；请先看下方视频确认姿势。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(s.sources)}${detail?`<a class="secondary" href="${detail}">完整动作详情</a>`:''}<label>组 <input class="small" data-tonight-field="sets" data-tonight-id="${esc(s.actionId)}" value="${esc(String(sets))}"></label><label>次数 <input class="small" data-tonight-field="reps" data-tonight-id="${esc(s.actionId)}" value="${esc(String(reps))}"></label></div>${long?`<details><summary>展开完整教学、补充与来源</summary>${long}</details>`:''}</article>`};
-  return shell(`<header class="hero"><div class="accent">可增减清单</div><h1>${esc(tonight.title)}</h1><p>${esc(tonight.note)}</p><p class="muted">“优先”不是必做；“可加／可替换／可选”可按器械、疲劳和时间跳过。俯身腿弯举视频不适用于坐姿机。</p></header>${tonight.groups.map(g=>`<section class="tools"><h2>${esc(g.title)}</h2><div class="list">${g.steps.map(row).join('')}</div></section>`).join('')}`,'tonight');
+  return shell(`<a class="back" href="#courses">返回训练</a><header class="hero"><div class="accent">可增减清单</div><h1>${esc(tonight.title)}</h1><p>${esc(tonight.note)}</p><p class="muted">“优先”不是必做；“可加／可替换／可选”可按器械、疲劳和时间跳过。俯身腿弯举视频不适用于坐姿机。</p></header>${tonight.groups.map(g=>`<section class="tools"><h2>${esc(g.title)}</h2><div class="list">${g.steps.map(row).join('')}</div></section>`).join('')}`,'tonight');
 }
 function missing(text,back){return shell(`<article class="detail"><h1>${text}</h1><p class="muted">链接可能已过期，或该条目不在当前资料中。</p><a class="primary" href="#${back}">返回</a></article>`)}
 function render(){
@@ -177,14 +218,15 @@ function render(){
   if(!location.hash)history.replaceState({...history.state},'',h);
   if(h==='#training'||h==='#tools'){location.replace('./training-tools.html');return}
   const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/),v=h.match(/^#video\/([^/]+)$/);
-  app.innerHTML=h===LEG_WARMUP?legSupportStage('warmup'):h===LEG_COOLDOWN?legSupportStage('cooldown'):m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):v?subtitleVideoPage(decode(v[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
+  const phase=isPhaseHash(h)?h.split('/'):null;
+  app.innerHTML=phase?supportStage(phase[1],phase[2]):m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):v?subtitleVideoPage(decode(v[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
   restoreDetails(saved?.details);
   requestAnimationFrame(()=>scrollTo(0,saved?.scrollY||0));
 }
 function close(){
   const h=location.hash,m=h.match(/^#course\/([^/]+)\/(\d+)\/exercise\//),parent=m?`#course/${m[1]}/${m[2]}`:h.startsWith('#library/course/')?'#content':'#library';
   if(history.state?.appNavigation&&/^#video\//.test(history.state.from||'')){history.back();return}
-  if(history.state?.appNavigation&&['#tonight',LEG_WARMUP,LEG_COOLDOWN].includes(history.state.from)){history.back();return}
+  if(history.state?.appNavigation&&(history.state.from==='#tonight'||isPhaseHash(history.state.from))){history.back();return}
   if(history.state?.appNavigation&&history.state.from===parent){history.back();return}
   navigate(parent,{replace:true,from:null});
 }
@@ -216,7 +258,7 @@ function courseBody(id){
 }
 function detailLayout({name,subtitle,body,source,media,active='library'}){
   const url=source&&safe(source.url),label=url?.startsWith('bilibili:')?'用 B站 App 打开原片':url?.startsWith('snssdk1128:')?'用抖音 App 打开原片':'打开来源网页';
-  return shell(`<article class="detail"><button class="back" data-close>${active==='courses'?'关闭教学':'关闭详情'}</button><h1>${esc(name)}</h1><p class="muted">${esc(subtitle||'')}</p>${media?.src?`<figure><img src="${esc(media.src)}" alt="${esc(name)} 动作示意"><figcaption class="muted">${esc(media.note||'动作示意')}</figcaption></figure>`:''}${url&&url!=='#'?`<div class="actions"><a class="primary" href="${esc(url)}">${label}${source.timeText?' · '+esc(source.timeText):''}</a></div>`:'<p class="muted">暂无可打开的原片链接。</p>'}${body}</article>`,active);
+  return shell(`<article class="detail"><button class="back" data-close>${active==='courses'?'关闭教学':'关闭详情'}</button><h1>${esc(name)}</h1><p class="muted">${esc(subtitle||'')}</p>${url&&url!=='#'?`<div class="actions"><a class="primary" href="${esc(url)}">${label}${source.timeText?' · '+esc(source.timeText):''}</a></div>`:'<p class="muted">暂无可打开的原片链接。</p>'}${media?.src?`<figure><img src="${esc(media.src)}" alt="${esc(name)} 动作示意"><figcaption class="muted">${esc(media.note||'动作示意')}</figcaption></figure>`:''}${body}</article>`,active);
 }
 function isDetailRoute(h){return /^#course\/[^/]+\/\d+\/exercise\/.+$/.test(h)||/^#library\/(?:reference|course)\/.+$/.test(h)}
 function navigate(target,{replace=false,from}={}){
@@ -248,14 +290,23 @@ function setupListeners(){
     }
     if(!action)return;const kind=action.dataset.action;
     if(kind==='restart'){
-      if(confirm('开始新一轮会清空本课程的组进度和休息计时。继续吗？')){train.sessions[c]={done:{},restSeconds:{},rest:null};saveTrain();navigate(c==='glute-leg'?LEG_WARMUP:`#course/${c}/0`,{replace:true,from:null})}return;
+      if(confirm('开始新一轮会清空本课程的组进度和休息计时。继续吗？')){train.sessions[c]={done:{},restSeconds:{},rest:null};saveTrain();navigate(phaseRoute(c,'warmup'),{replace:true,from:null})}return;
     }
     if(kind==='set'&&(+s.done[i]||0)<2){s.done[i]=(+s.done[i]||0)+1;s.rest={i:+i,deadline:Date.now()+(s.restSeconds[i]||step(c,i).rest)*1000,paused:false}}
     if(kind==='undo'&&(+s.done[i]||0)>0){s.done[i]=Math.max(0,(+s.done[i]||0)-1);if(s.rest?.i===+i)s.rest=null}
     if(kind==='pause'&&s.rest&&!s.rest.finished){if(s.rest.paused){s.rest.deadline=Date.now()+s.rest.left;s.rest.paused=false}else{s.rest.left=Math.max(0,s.rest.deadline-Date.now());s.rest.paused=true}}
     saveTrain();render();
   });
-  app.addEventListener('input',e=>{if(e.target.id!=='search')return;ui.q=e.target.value;savePlace();render();const input=document.querySelector('#search');input?.focus();input?.setSelectionRange(ui.q.length,ui.q.length)});
+  let composing=false;
+  const updateSearch=e=>{
+    if(e.target.id!=='search'||composing||e.isComposing||e.target.value===ui.q)return;
+    const cursor=e.target.selectionStart??e.target.value.length;
+    ui.q=e.target.value;savePlace();render();
+    const input=document.querySelector('#search');input?.focus();input?.setSelectionRange(cursor,cursor);
+  };
+  app.addEventListener('compositionstart',e=>{if(e.target.id==='search')composing=true});
+  app.addEventListener('compositionend',e=>{if(e.target.id==='search'){composing=false;updateSearch(e)}});
+  app.addEventListener('input',updateSearch);
   app.addEventListener('change',e=>{if(!e.target.matches('[data-rest]'))return;const m=location.hash.match(/^#course\/([^/]+)\/(\d+)$/),value=+e.target.value;if(m&&[90,120,150,180].includes(value)){session(m[1]).restSeconds[m[2]]=value;saveTrain()}});
   app.addEventListener('change',e=>{const id=e.target.dataset?.tonightSkip;if(!id)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),skip:e.target.checked};saveTonight(state);savePlace();render()});
   app.addEventListener('input',e=>{const id=e.target.dataset?.tonightId,field=e.target.dataset?.tonightField;if(!id||!field)return;const state=tonightState();state.steps[id]={...(state.steps[id]||{}),[field]:e.target.value};saveTonight(state)});

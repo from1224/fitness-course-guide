@@ -40,7 +40,7 @@ migrated.action('set');assert.equal(migrated.run("train.sessions['chest-back'].d
 const paused=migrated.run("train.sessions['chest-back'].rest.left");assert.ok(paused<=180000&&paused>170000);
 const reloaded=environment({hash:'#course/chest-back/1',local:Object.fromEntries(migrated.localMap)});assert.equal(reloaded.run("train.sessions['chest-back'].rest.left"),paused);assert.equal(reloaded.run("train.sessions['chest-back'].rest.paused"),true);
 migrated.run("navigate('#course/chest-back/3')");migrated.setConfirm(false);migrated.action('restart');assert.equal(migrated.run("train.sessions['chest-back'].done[1]"),1);
-migrated.setConfirm(true);migrated.action('restart');assert.equal(migrated.ctx.location.hash,'#course/chest-back/0');assert.deepEqual(JSON.parse(migrated.run("JSON.stringify(train.sessions['chest-back'])")),{done:{},restSeconds:{},rest:null});assert.equal(migrated.run("train.choices['chest-back/1']"),'supported-one-arm-cable-row');
+migrated.setConfirm(true);migrated.action('restart');assert.equal(migrated.ctx.location.hash,'#course/chest-back/warmup');assert.deepEqual(JSON.parse(migrated.run("JSON.stringify(train.sessions['chest-back'])")),{done:{},restSeconds:{},rest:null});assert.equal(migrated.run("train.choices['chest-back/1']"),'supported-one-arm-cable-row');
 const nav=environment({hash:'#library'});nav.run("ui={q:'杠铃卧推',filter:'胸'}");nav.ctx.scrollY=480;nav.run("savePlace();render()");
 nav.run("navigate('#library/reference/barbell-bench-press')");const length=nav.stackLength();nav.run('close()');assert.equal(nav.ctx.location.hash,'#library');assert.equal(nav.run('ui.q'),'杠铃卧推');assert.equal(nav.run('ui.filter'),'胸');assert.equal(nav.ctx.scrollY,480);assert.ok(nav.app.innerHTML.includes('value=\"杠铃卧推\"'));assert.equal(nav.stackLength(),length);
 nav.ctx.history.forward();assert.equal(nav.ctx.location.hash,'#library/reference/barbell-bench-press');nav.run('close()');assert.equal(nav.ctx.location.hash,'#library');assert.equal(nav.stackLength(),length);
@@ -55,7 +55,7 @@ const reverseCourse=environment({hash:'#library/course/back.pulldown.single_arm.
 console.log(JSON.stringify({passed:true,...summary,migration:'legacy and corrupt-current fallback; current wins',training:'rest selection, paused reload, restart cancellation and confirmation',navigation:'close, Back/Forward, reload query/filter/scroll, direct-link parent, old tools alias'},null,2));
 
 const leg=environment({local:{'chenglan-training-v3':JSON.stringify({choices:{'glute-leg/0':'BV17aovBqEdg:goblet_squat'},sessions:{'glute-leg':{done:{0:1},restSeconds:{0:90},rest:null}}})}});
-leg.run('render()');assert.match(leg.app.innerHTML,/href="#course\/glute-leg\/warmup">从热身开始/);assert.match(leg.app.innerHTML,/href="#course\/chest-back\/0">开始胸背训练/);
+leg.run('render()');assert.match(leg.app.innerHTML,/href="#course\/glute-leg\/0">继续主训练/);assert.match(leg.app.innerHTML,/href="#course\/chest-back\/warmup">从热身开始/);
 leg.run("navigate(LEG_WARMUP)");
 assert.match(leg.app.innerHTML,/aria-current="step"><span>01<\/span>热身/);
 assert.match(leg.app.innerHTML,/动态青蛙趴/);assert.match(leg.app.innerHTML,/动态 90\/90 接伸髋/);
@@ -82,3 +82,20 @@ legReload.run('render()');assert.match(legReload.app.innerHTML,/降速与拉伸/
 leg.run("navigate('#course/glute-leg/3')");leg.setConfirm(false);leg.action('restart');assert.equal(leg.ctx.location.hash,'#course/glute-leg/3');
 leg.setConfirm(true);leg.action('restart');assert.equal(leg.ctx.location.hash,'#course/glute-leg/warmup');assert.deepEqual(JSON.parse(leg.run("JSON.stringify(session('glute-leg').done)")),{});assert.equal(leg.run("choice('glute-leg',0).id"),'BV17aovBqEdg:goblet_squat');
 console.log('Glute-leg phases: source-tier boundaries, linked reference return, Back/Forward/reload, unchanged step order and preserved progress verified');
+
+const chest=environment({hash:'#course/chest-back/warmup'});
+chest.run('render()');
+assert.match(chest.app.innerHTML,/弹力带小幅前后拉开/);
+assert.match(chest.app.innerHTML,/胸椎滚动配合手臂上伸/);
+assert.match(chest.app.innerHTML,/BV1v5opBhEDc\/\?t=4882/);
+chest.run("navigate('#library/course/warmup.thoracic_rolling.overhead_reach.v1');close()");
+assert.equal(chest.ctx.location.hash,'#course/chest-back/warmup');
+chest.run("navigate('#course/chest-back/0')");
+assert.ok(chest.app.innerHTML.indexOf('动作详情')<chest.app.innerHTML.indexOf('组进度'));
+chest.run("navigate('#course/chest-back/3')");
+assert.match(chest.app.innerHTML,/href="#course\/chest-back\/cooldown">去降速与拉伸/);
+chest.run("navigate('#course/chest-back/cooldown');navigate('#library/reference/rack-back-rotation-stretch');close()");
+assert.equal(chest.ctx.location.hash,'#course/chest-back/cooldown');
+assert.match(chest.app.innerHTML,/胸部 · 靠墙屈肘/);
+assert.match(chest.app.innerHTML,/背部 · 扶架旋转/);
+console.log('Guide redesign: resume, chest-back phases and originals, simplified controls, source return');
