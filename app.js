@@ -1,5 +1,5 @@
 const app=document.querySelector('#app');
-const dataVersion='20261012-mapping-corrections';
+const dataVersion='20261122-leg-session';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const decode=v=>{try{return decodeURIComponent(v)}catch{return v}};
 const videoIds={BV1CSoKBaEgK:'116435959420113',BV1cdL96bEMF:'116765715601071',BV19AxrzQEEH:'115341850057826',BV1v5opBhEDc:'116447049226152',BV1tcraBTEqg:'115880667124445',BV17aovBqEdg:'116471191574369',BV1qF6wBaEWu:'115978847392380'};
@@ -69,7 +69,7 @@ function restorePlace(h=location.hash||'#courses'){
 }
 function href(route){return `#${route}`}
 function shell(body,active='courses'){
-  return `<div class="shell"><aside class="side"><div class="brand">澄蓝训练<span>把课程带进每一次训练</span></div><nav class="nav"><a class="${active==='courses'?'on':''}" href="#courses">训练课程</a><a class="${active==='tonight'?'on':''}" href="#tonight">今晚清单</a><a class="${active==='library'?'on':''}" href="#library">查动作</a><a href="./training-tools.html">训练工具</a></nav></aside><section>${body}</section></div>`;
+  return `<div class="shell"><aside class="side"><div class="brand">澄蓝训练<span>把课程带进每一次训练</span></div><nav class="nav" aria-label="主导航"><a class="${active==='courses'?'on':''}" href="#courses">训练课程</a><a class="${active==='tonight'?'on':''}" href="#tonight">今晚清单</a><a class="${active==='library'?'on':''}" href="#library">查动作</a><a href="./training-tools.html">训练工具</a></nav></aside><section>${body}</section></div>`;
 }
 function course(id){return courses.find(x=>x.id===id)}function step(c,i){return course(c)?.steps[+i]}
 function ref(id){return refs.find(x=>x.id===id)}
@@ -90,12 +90,45 @@ function inlineTeaching(id,card){
   return {cue,notes};
 }
 function inlineVideoLinks(sources){return (sources||[]).map(s=>`<a class="secondary" href="${esc(sourcePublicLink(s))}">视频 · ${esc(s.topic||s.label||s.timeText||'原片')}${s.bv?` · ${Math.floor(s.t/60)}:${String(Math.floor(s.t%60)).padStart(2,'0')}`:''}</a>`).join('')}
-function courseHome(){return shell(`<header class="hero"><div class="accent">训练主入口</div><h1>今天练什么，按步骤完成。</h1><p>从一节课程开始。动作教学、示意图和原片链接只在需要它们的地方出现。</p></header><div class="grid">${courses.map(c=>`<article class="card"><h2>${esc(c.name)}</h2><p>${esc(c.intro)}</p><p class="muted">4 个动作槽位 · 可替换 · 进度与休息计时会保存</p><div class="actions"><a class="primary" href="${href(`course/${c.id}/0`)}">开始训练</a></div></article>`).join('')}</div><section class="tools"><h2>今晚想练胸和腿后侧？</h2><p class="muted">已整理为可跳过、可换动作的来源清单。</p><a class="secondary" href="#tonight">打开今晚清单</a></section>`)}
+const LEG_WARMUP='#course/glute-leg/warmup',LEG_MAIN='#course/glute-leg/0',LEG_COOLDOWN='#course/glute-leg/cooldown';
+const legStageLinks=[['warmup','01','热身',LEG_WARMUP],['main','02','主训练',LEG_MAIN],['cooldown','03','降速与拉伸',LEG_COOLDOWN]];
+const legSupport={
+  warmup:{
+    title:'热身',intro:'从《凯圣王–谭成义三分化⑤》选两项开场动态热身，不是整段热身照搬。',
+    source:'https://www.bilibili.com/video/BV17aovBqEdg/',sourceLabel:'看 B 站原片 · 跟练腿股四头肌腘绳肌',
+    rows:[
+      ['BV17aovBqEdg:warmup_dynamic_frog','course','动态青蛙趴','慢慢向后推时配合骨盆前倾，向前推时配合后倾。膝距、手脚摆位按视频确认。'],
+      ['BV17aovBqEdg:warmup_dynamic_90_90_hip_extension','course','动态 90/90 接伸髋','从 90/90 坐姿开始，先坐下，再向前、向上顶髋；不急着做举臂变化。'],
+    ],
+    note:'两个动作在已有字幕中都没有明确次数；先看示范，用舒服的幅度慢慢做。动作引起尖锐疼痛就停止。'
+  },
+  cooldown:{
+    title:'降速与拉伸',intro:'从谭成义另一支拉伸教学选三项，放在主训练之后。这是带轻微主动对抗的版本，不是长时间静态压伸。',
+    source:'https://www.bilibili.com/zh-Hans/video/BV1EkV96nEyg/',sourceLabel:'看 B 站原片 · 好的训练就是拉伸',
+    rows:[
+      ['supine-figure-four-glute-stretch','reference','臀部 · 仰卧交叠腿','仰卧交叠腿，双手托住大腿把腿带近；大腿与手轻轻相抗，放松后换侧。'],
+      ['supine-straight-leg-hamstring-stretch','reference','大腿后侧 · 仰卧抬腿','沿用仰卧抱腿姿势，把抬起的腿往伸直方向带、脚尖勾起；大腿后侧与手轻轻相抗，再放松。'],
+      ['half-kneeling-quad-stretch','reference','大腿前侧 · 弓步抓踝','目标腿在后，稳住躯干，手握后脚踝，手与脚轻轻相抗。可用另一手扶稳；跪姿或膝部不舒服就跳过这项。'],
+    ],
+    note:'动作库记录：片中示例多为约 5 秒的主动对抗，通常三组。轻力即可，不硬顶；出现尖锐疼痛就停止。'
+  }
+};
+function legStageNav(active){
+  return `<nav class="leg-stages" aria-label="臀腿训练阶段">${legStageLinks.map(([key,n,name,url])=>`<a href="${url}"${key===active?' aria-current="step"':''}><span>${n}</span>${name}</a>`).join('')}</nav>`;
+}
+function legSupportStage(stage){
+  const warm=stage==='warmup',plan=legSupport[stage];
+  const rows=plan.rows.map(([id,type,name,note])=>`<li><b>${esc(name)}</b><p>${esc(note)}</p><a class="phase-detail" href="#library/${type}/${encodeURIComponent(id)}">动作要点与原片</a></li>`).join('');
+  const extra=warm?'':'<p class="muted phase-sources">通用补充（非谭成义原课）：可先逐步放慢走路，呼吸平稳再拉伸。<a href="https://www.orthoinfo.org/en/staying-healthy/warm-up-cool-down-and-be-flexible/">AAOS 降速参考</a></p>';
+  return shell(`<section class="leg-session"><a class="back" href="#courses">返回课程</a><header class="hero phase-hero"><div class="accent">臀腿两分化 · ${warm?'01 / 03':'03 / 03'}</div><h1>${esc(plan.title)}</h1><p>${esc(plan.intro)}</p></header>${legStageNav(stage)}<article class="card phase-card"><ol class="phase-list">${rows}</ol><p class="phase-note">${esc(plan.note)}</p></article><p class="muted phase-sources"><a href="${plan.source}">${esc(plan.sourceLabel)}</a></p>${extra}<div class="actions phase-actions">${warm?`<a class="primary" href="${LEG_MAIN}">进入主训练</a>`:'<a class="primary" href="#courses">返回课程</a><a class="back" href="#course/glute-leg/3">回到最后一项</a>'}</div></section>`);
+}
+function courseHome(){return shell(`<section class="course-home"><header class="hero"><div class="accent">训练课程</div><h1>今天练什么？</h1></header><div class="grid">${[...courses].reverse().map(c=>{const leg=c.id==='glute-leg';return `<article class="card${leg?' course-feature':''}"><h2>${esc(c.name)}</h2><p>${esc(c.intro)}</p><p class="muted">${leg?'热身 → 4 个主动作 → 降速与拉伸':'4 个动作槽位 · 可替换 · 进度与休息计时会保存'}</p><div class="actions"><a class="primary" href="${leg?LEG_WARMUP:href(`course/${c.id}/0`)}">${leg?'从热身开始':'开始胸背训练'}</a>${leg?`<a class="secondary" href="${LEG_MAIN}">直接进入主训练</a>`:''}</div></article>`;}).join('')}</div><section class="tools"><h2>其他训练计划</h2><a class="secondary" href="#tonight">打开胸部＋腿后侧清单</a></section></section>`);}
 function renderCourse(c,i){
   const s=step(c,i),a=s&&choice(c,i);if(!s||!a)return missing('课程步骤不存在','courses');
   const state=session(c),done=Math.min(2,Math.max(0,+state.done[i]||0)),rest=state.rest?.i===+i?state.rest:null,remain=rest?(rest.paused?rest.left:Math.max(0,rest.deadline-Date.now())):0,seconds=state.restSeconds[i]||s.rest;
+  const leg=c==='glute-leg';
   const teach=inlineTeaching(a.id,a.card),sources=a.card?[{bv:a.card.bv,t:a.card.t,topic:'本课程动作片段'}]:[preferredSource(a)].filter(Boolean);
-  return shell(`<a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header><article class="card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card" data-detail-scope="course:${esc(a.id)}"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">完整动作详情</a></div><details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:'<button class="primary" data-action="restart">开始新一轮</button>'}</div>`);
+  return shell(`<section class="course-steps${leg?' leg-session':''}"><a class="back" href="#courses">返回课程</a><header class="hero"><div class="step-head"><div><div class="accent">${esc(course(c).name)} · ${+i+1}/4</div><h1>${esc(a.name)}</h1></div><span class="tag">${esc(s.slot)}</span></div><p>2 工作组 × ${s.min}–${s.max} 次 · 留 2–3 次余力</p><p class="muted">这是新增编排建议，并非原视频处方。</p></header>${leg?legStageNav('main'):''}<article class="card"><h2>组进度</h2><div class="progress"><i style="width:${done/2*100}%"></i></div><p>${done} / 2 组已完成 · 休息 ${seconds} 秒</p><label>休息 <select data-rest>${[90,120,150,180].map(v=>`<option value="${v}" ${seconds===v?'selected':''}>${v} 秒</option>`).join('')}</select></label>${rest?(rest.finished||remain<=0?'<p class="muted">本轮休息已结束；不会自动开始下一组。</p>':`<div class="timer" data-timer>${String(Math.ceil(remain/1000)).padStart(2,'0')} 秒</div><button data-action="pause">${rest.paused?'恢复':'暂停'}休息</button>`):''}<div class="actions"><button class="primary" data-action="set" ${done>=2?'disabled':''}>完成一组</button><button data-action="undo" ${!done?'disabled':''}>撤销一组</button></div></article><article class="card" data-detail-scope="course:${esc(a.id)}"><h2>动作卡</h2>${teach.cue?`<p><b>口诀：</b>${esc(teach.cue)}</p>`:'<p class="muted">当前未解析简短口诀；请先看视频确认动作。</p>'}${teach.notes.length?`<ul>${teach.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}<div class="actions">${inlineVideoLinks(sources)}<a class="secondary" href="${href(`course/${c}/${i}/exercise/${encodeURIComponent(a.id)}`)}">完整动作详情</a></div><details><summary>展开完整教学、补充与来源</summary>${a.card?courseBody(a.id):referenceBody(a)}</details><h3 style="margin-top:18px">同模式替换</h3><div class="actions">${atoms(s).map(x=>`<button data-replace="${esc(x.id)}" ${x.id===a.id?'disabled':''}>${esc(x.name)}</button>`).join('')}</div></article><div class="actions">${+i?`<a class="back" href="${href(`course/${c}/${+i-1}`)}">上一项</a>`:''}${+i<3?`<a class="primary" href="${href(`course/${c}/${+i+1}`)}">下一项</a>`:leg?`<a class="primary" href="${LEG_COOLDOWN}">去降速与拉伸</a><button data-action="restart">开始新一轮</button>`:'<button class="primary" data-action="restart">开始新一轮</button>'}</div></section>`);
 }
 function courseDetail(c,i,id){
   const s=step(c,i),x=s&&atoms(s).find(v=>v.id===id);
@@ -144,14 +177,14 @@ function render(){
   if(!location.hash)history.replaceState({...history.state},'',h);
   if(h==='#training'||h==='#tools'){location.replace('./training-tools.html');return}
   const saved=restorePlace(h),m=h.match(/^#course\/([^/]+)\/(\d+)(?:\/exercise\/(.+))?$/),l=h.match(/^#library\/reference\/(.+)$/),cl=h.match(/^#library\/course\/(.+)$/),v=h.match(/^#video\/([^/]+)$/);
-  app.innerHTML=m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):v?subtitleVideoPage(decode(v[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
+  app.innerHTML=h===LEG_WARMUP?legSupportStage('warmup'):h===LEG_COOLDOWN?legSupportStage('cooldown'):m?(m[3]?courseDetail(m[1],m[2],decode(m[3])):renderCourse(m[1],m[2])):l?libraryDetail(decode(l[1])):cl?courseLibraryDetail(decode(cl[1])):v?subtitleVideoPage(decode(v[1])):h==='#content'?courseLibrary():h==='#library'?library():h==='#tonight'?tonightPlan():h==='#courses'?courseHome():missing('页面不存在','courses');
   restoreDetails(saved?.details);
   requestAnimationFrame(()=>scrollTo(0,saved?.scrollY||0));
 }
 function close(){
   const h=location.hash,m=h.match(/^#course\/([^/]+)\/(\d+)\/exercise\//),parent=m?`#course/${m[1]}/${m[2]}`:h.startsWith('#library/course/')?'#content':'#library';
   if(history.state?.appNavigation&&/^#video\//.test(history.state.from||'')){history.back();return}
-  if(history.state?.appNavigation&&history.state.from==='#tonight'){history.back();return}
+  if(history.state?.appNavigation&&['#tonight',LEG_WARMUP,LEG_COOLDOWN].includes(history.state.from)){history.back();return}
   if(history.state?.appNavigation&&history.state.from===parent){history.back();return}
   navigate(parent,{replace:true,from:null});
 }
@@ -215,7 +248,7 @@ function setupListeners(){
     }
     if(!action)return;const kind=action.dataset.action;
     if(kind==='restart'){
-      if(confirm('开始新一轮会清空本课程的组进度和休息计时。继续吗？')){train.sessions[c]={done:{},restSeconds:{},rest:null};saveTrain();navigate(`#course/${c}/0`,{replace:true,from:null})}return;
+      if(confirm('开始新一轮会清空本课程的组进度和休息计时。继续吗？')){train.sessions[c]={done:{},restSeconds:{},rest:null};saveTrain();navigate(c==='glute-leg'?LEG_WARMUP:`#course/${c}/0`,{replace:true,from:null})}return;
     }
     if(kind==='set'&&(+s.done[i]||0)<2){s.done[i]=(+s.done[i]||0)+1;s.rest={i:+i,deadline:Date.now()+(s.restSeconds[i]||step(c,i).rest)*1000,paused:false}}
     if(kind==='undo'&&(+s.done[i]||0)>0){s.done[i]=Math.max(0,(+s.done[i]||0)-1);if(s.rest?.i===+i)s.rest=null}

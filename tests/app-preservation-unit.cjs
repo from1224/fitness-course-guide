@@ -54,3 +54,31 @@ const videoDetail=environment({hash:'#video/BV1ofdnBZEi3'});videoDetail.run("car
 const reverseCourse=environment({hash:'#library/course/back.pulldown.single_arm.cable.lat.v1'});reverseCourse.run("cards=data.content.sourceCards;evidence=data.evidence;render()");assert.ok(reverseCourse.app.innerHTML.includes('字幕整理来源'));assert.ok(reverseCourse.app.innerHTML.includes('三分化第二期背部，二头'));
 console.log(JSON.stringify({passed:true,...summary,migration:'legacy and corrupt-current fallback; current wins',training:'rest selection, paused reload, restart cancellation and confirmation',navigation:'close, Back/Forward, reload query/filter/scroll, direct-link parent, old tools alias'},null,2));
 
+const leg=environment({local:{'chenglan-training-v3':JSON.stringify({choices:{'glute-leg/0':'BV17aovBqEdg:goblet_squat'},sessions:{'glute-leg':{done:{0:1},restSeconds:{0:90},rest:null}}})}});
+leg.run('render()');assert.match(leg.app.innerHTML,/href="#course\/glute-leg\/warmup">从热身开始/);assert.match(leg.app.innerHTML,/href="#course\/chest-back\/0">开始胸背训练/);
+leg.run("navigate(LEG_WARMUP)");
+assert.match(leg.app.innerHTML,/aria-current="step"><span>01<\/span>热身/);
+assert.match(leg.app.innerHTML,/动态青蛙趴/);assert.match(leg.app.innerHTML,/动态 90\/90 接伸髋/);
+assert.equal((leg.app.innerHTML.match(/class="phase-detail"/g)||[]).length,2);
+assert.ok(!leg.app.innerHTML.includes('20–30 秒'));
+leg.run("navigate('#library/course/BV17aovBqEdg%3Awarmup_dynamic_frog')");
+assert.match(leg.app.innerHTML,/start_progress=18000/);leg.run('close()');assert.equal(leg.ctx.location.hash,'#course/glute-leg/warmup');
+leg.run("navigate(LEG_MAIN)");
+assert.match(leg.app.innerHTML,/aria-current="step"><span>02<\/span>主训练/);
+assert.match(leg.app.innerHTML,/高脚杯深蹲/);assert.match(leg.app.innerHTML,/1 \/ 2 组已完成 · 休息 90 秒/);
+assert.deepEqual(JSON.parse(leg.run("JSON.stringify(course('glute-leg').steps.map(x=>x.ref))")),['squat-pattern','romanian-deadlift','standing-cable-hip-extension','prone-leg-curl']);
+for(let i=0;i<3;i++){assert.ok(leg.app.innerHTML.includes('href="#course/glute-leg/'+(i+1)+'">下一项'));leg.run('navigate("#course/glute-leg/'+(i+1)+'")');}
+assert.match(leg.app.innerHTML,/href="#course\/glute-leg\/cooldown">去降速与拉伸/);
+leg.run('navigate(LEG_COOLDOWN)');assert.match(leg.app.innerHTML,/aria-current="step"><span>03<\/span>降速与拉伸/);
+assert.match(leg.app.innerHTML,/谭成义另一支拉伸教学/);assert.match(leg.app.innerHTML,/轻微主动对抗/);
+assert.equal((leg.app.innerHTML.match(/class="phase-detail"/g)||[]).length,3);
+leg.run("navigate('#library/reference/supine-figure-four-glute-stretch')");assert.match(leg.app.innerHTML,/start_progress=983000/);
+leg.run('close()');assert.equal(leg.ctx.location.hash,'#course/glute-leg/cooldown');
+leg.ctx.history.back();assert.equal(leg.ctx.location.hash,'#course/glute-leg/3');
+leg.ctx.history.forward();assert.equal(leg.ctx.location.hash,'#course/glute-leg/cooldown');
+assert.equal(leg.run("session('glute-leg').done[0]"),1);
+const legReload=environment({hash:leg.ctx.location.hash,local:Object.fromEntries(leg.localMap),session:Object.fromEntries(leg.sessionMap),state:leg.ctx.history.state});
+legReload.run('render()');assert.match(legReload.app.innerHTML,/降速与拉伸/);
+leg.run("navigate('#course/glute-leg/3')");leg.setConfirm(false);leg.action('restart');assert.equal(leg.ctx.location.hash,'#course/glute-leg/3');
+leg.setConfirm(true);leg.action('restart');assert.equal(leg.ctx.location.hash,'#course/glute-leg/warmup');assert.deepEqual(JSON.parse(leg.run("JSON.stringify(session('glute-leg').done)")),{});assert.equal(leg.run("choice('glute-leg',0).id"),'BV17aovBqEdg:goblet_squat');
+console.log('Glute-leg phases: source-tier boundaries, linked reference return, Back/Forward/reload, unchanged step order and preserved progress verified');
